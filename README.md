@@ -23,7 +23,7 @@ Install with your mod manager (r2modman / Thunderstore Mod Manager) and it drops
 everything in the right place. Manual install:
 
 - `Mods/RumbleReShaded.dll` → `RUMBLE/Mods/`
-- `UserData/RumbleShade/*` → `RUMBLE/UserData/RumbleShade/` (the example packs)
+- `UserData/*` → `RUMBLE/UserData/` (the example pack folders)
 
 Launch the game, open **ModUI → RumbleReShaded**, and toggle a pack on. Every pack gets
 its own on/off switch plus a live slider for each parameter it exposes. Changes apply as
@@ -31,7 +31,7 @@ soon as you save.
 
 ## Included packs
 
-Two example packs ship in `UserData/RumbleShade/` — both genuinely usable, not just demos:
+Two example packs ship in `UserData/` — both genuinely usable, not just demos:
 
 - **Grayscale** — one *Strength* slider, desaturates the whole view. The "hello world" of
   RumbleShade.
