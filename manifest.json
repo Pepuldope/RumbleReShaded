@@ -1,0 +1,9 @@
+{
+    "name": "RumbleReShaded",
+    "version_number": "1.0.0",
+    "website_url": "https://github.com/Pepuldope/RumbleReShaded",
+    "description": "Shaders for RUMBLE. Loads community shader packs as full-screen VR post-processing (color grading, bloom, grain, fog, CRT, grayscale and more), covering everything incl. particles in both eyes. Ships 2 packs + a make-your-own guide.",
+    "dependencies": [
+        "Baumritter-RumbleModUI-2.1.2"
+    ]
+}

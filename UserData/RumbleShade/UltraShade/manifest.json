@@ -1,0 +1,23 @@
+{
+    "name": "UltraShade",
+    "author": "Pepuldo",
+    "version": "1.0.0",
+    "bundle": "ultrashade.bundle",
+    "material": "M_UltraShade",
+    "priority": 0,
+    "parameters": [
+        { "property": "_Exposure",         "label": "Exposure",             "default": 1.0,   "min": 0.0, "max": 3.0 },
+        { "property": "_Temperature",      "label": "Temperature",          "default": 0.08,  "min": -1.0, "max": 1.0 },
+        { "property": "_Saturation",       "label": "Saturation",           "default": 1.12,  "min": 0.0, "max": 2.0 },
+        { "property": "_Contrast",         "label": "Contrast",             "default": 1.06,  "min": 0.5, "max": 2.0 },
+        { "property": "_Tonemap",          "label": "ACES Tonemap",         "default": 1.0,   "min": 0.0, "max": 1.0 },
+        { "property": "_BloomIntensity",   "label": "Bloom Intensity",      "default": 0.4,   "min": 0.0, "max": 2.0 },
+        { "property": "_BloomThreshold",   "label": "Bloom Threshold",      "default": 0.85,  "min": 0.0, "max": 2.0 },
+        { "property": "_BloomRadius",      "label": "Bloom Radius",         "default": 4.0,   "min": 0.0, "max": 12.0 },
+        { "property": "_Sharpen",          "label": "Sharpen",              "default": 0.2,   "min": 0.0, "max": 1.0 },
+        { "property": "_ChromAb",          "label": "Chromatic Aberration", "default": 0.6,   "min": 0.0, "max": 5.0 },
+        { "property": "_GrainStrength",    "label": "Film Grain",           "default": 0.025, "min": 0.0, "max": 0.2 },
+        { "property": "_VignetteStrength", "label": "Vignette",             "default": 0.3,   "min": 0.0, "max": 1.0 },
+        { "property": "_FogDensity",       "label": "Fog Density",          "default": 0.01,  "min": 0.0, "max": 0.2 }
+    ]
+}
