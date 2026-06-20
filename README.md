@@ -45,10 +45,22 @@ on top of a grading pack.
 
 ## Make your own packs
 
-RumbleReShaded is really just a **host** for community packs — the fun part is making
-them. A pack is a small fragment shader built into a Unity AssetBundle, dropped into a
-folder. You don't even need to know HLSL: you can describe the look you want in plain
-English and have an AI write the shader, then build it.
+RumbleReShaded is really a **host**: it solves the hard part of RUMBLE shaders *once, for
+everyone*, so you only have to write the look. Getting a full-screen effect to cover the
+whole frame — particles and all — in both eyes in VR means an injected URP RenderGraph
+pass, stereo handling, MSAA resolves, the variant-stripping gotchas… all of that lives in
+the mod. You never touch C#, MelonLoader or any of the rendering plumbing.
+
+What's left for you is just a **fragment shader** — and you don't even need to know HLSL.
+You can describe the look you want in plain English ("cold horror — desaturated, heavy
+grain, dark edges", "retro CRT", "warm golden-hour film") and have an AI write the shader,
+then build it.
+
+> **One honest caveat:** because RUMBLE is an Il2Cpp build with no runtime shader compiler,
+> every shader — in *any* RUMBLE mod — has to be pre-compiled into a Unity AssetBundle.
+> So you do need Unity to build a pack. The companion **RumbleShade** template project makes
+> that a one-click "Build Shader Packs" step; you don't configure anything. That build is
+> the only tool requirement, and it's the same step every RUMBLE shader modder already does.
 
 See the **[`ShaderCreation/`](ShaderCreation/)** folder included here:
 
@@ -60,6 +72,20 @@ See the **[`ShaderCreation/`](ShaderCreation/)** folder included here:
   and a troubleshooting table.
 
 The packs are built from the companion **RumbleShade** Unity template project.
+
+## For mod developers — build on top of it
+
+RumbleReShaded is meant to be an **upper dependency**, the same way AdditionalSounds is for
+audio. If you're making a mod that needs a screen effect — a sonar/echolocation look, a
+damage overlay, a night-vision mode, a map-specific grade — you can ship it as a
+RumbleReShaded pack and declare RumbleReShaded as a dependency, instead of reinventing the
+AssetBundle loading and the VR post-process blit in your own mod.
+
+And as more looks get made, the goal is for RumbleReShaded to become the **standard
+dependency that community shaders are built against** — one shared place packs target, so
+authors write a shader and everyone can install it, rather than every visual effect being
+welded into a separate one-off mod. If that's a direction you'd find useful for your own
+mod, get in touch — I'm happy to help wire it up.
 
 ## Troubleshooting
 
