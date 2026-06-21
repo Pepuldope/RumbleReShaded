@@ -96,6 +96,24 @@ mod, get in touch — I'm happy to help wire it up.
 | Magenta screen | Shader failed to compile/load — a pack must be built with the exact Unity version the game runs. |
 | Nothing works at all | Make sure **Enabled** is on, and that MelonLoader + ModUI loaded (`MelonLoader/Latest.log`). |
 
+## Source code
+
+The full mod source is in **[`src/`](src/)** — it's a small, readable project (two C#
+files: the injected URP render pass and the pack loader). Nothing is obfuscated, so anyone
+can read exactly what the mod does.
+
+In short: it injects a URP `ScriptableRenderPass` after the frame is fully drawn, copies
+the camera's finished color image, and blits it back through each enabled pack's shader. It
+only ever reads the **already-rendered frame** (plus the standard depth buffer for depth
+effects) and only changes how *your own* view looks — it touches no physics, no match state,
+and nothing an opponent can observe.
+
+- [`src/RumbleReShaded/Main.cs`](src/RumbleReShaded/Main.cs) — the render pass + ModUI wiring.
+- [`src/RumbleReShaded/ShaderPack.cs`](src/RumbleReShaded/ShaderPack.cs) — pack discovery, manifest parsing, AssetBundle loading.
+
+Build it with the .NET SDK against a local RUMBLE install (`dotnet build -c Release`); the
+`.csproj` references the game's MelonLoader assemblies via `<GamePath>`.
+
 ## Credits
 
 Mod by **Pepuldo**. Built on MelonLoader, Il2CppInterop and ModUI.
