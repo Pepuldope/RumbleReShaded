@@ -4,6 +4,8 @@ using MelonLoader;
 
 [assembly: MelonInfo(typeof(RumbleReShaded.RumbleReShadedMod), RumbleReShaded.BuildInfo.ModName, RumbleReShaded.BuildInfo.ModVersion, RumbleReShaded.BuildInfo.Author)]
 [assembly: MelonGame("Buckethead Entertainment", "RUMBLE")]
+// UIFramework must initialise before us so UI.RegisterMelon works in OnInitializeMelon.
+[assembly: MelonAdditionalDependencies("UIFramework")]
 
 [assembly: AssemblyTitle("RumbleReShaded")]
 [assembly: AssemblyDescription("Loads community shader packs and applies them as VR-safe post effects")]

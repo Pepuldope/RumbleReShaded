@@ -4,7 +4,6 @@ using System.IO;
 using System.Text.Json;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using MelonLoader;
-using RumbleModUI;
 using UnityEngine;
 
 namespace RumbleReShaded
@@ -16,7 +15,7 @@ namespace RumbleReShaded
         public float Default;
         public float Min;
         public float Max;
-        public ModSetting<float> Setting;
+        public MelonPreferences_Entry<float> Setting;
     }
 
     // One shader pack = a folder under UserData containing a
@@ -33,7 +32,7 @@ namespace RumbleReShaded
         public string Folder;
         public List<PackParameter> Parameters = new List<PackParameter>();
 
-        public ModSetting<bool> EnabledSetting;
+        public MelonPreferences_Entry<bool> EnabledSetting;
         public AssetBundle Bundle;
         public Material Material;
         public bool LoadFailed;
@@ -42,7 +41,7 @@ namespace RumbleReShaded
         // transparent effects, so particles and trails stay visible on top.
         public int RenderQueue => Queue != 0 ? Queue : 2600 + Priority;
 
-        public bool IsEnabled => EnabledSetting == null || (bool)EnabledSetting.Value;
+        public bool IsEnabled => EnabledSetting == null || EnabledSetting.Value;
 
         public static ShaderPack FromFolder(string folder)
         {
@@ -199,7 +198,7 @@ namespace RumbleReShaded
             if (Material == null) return;
             foreach (PackParameter p in Parameters)
             {
-                float value = p.Setting != null ? Mathf.Clamp((float)p.Setting.Value, p.Min, p.Max) : p.Default;
+                float value = p.Setting != null ? Mathf.Clamp(p.Setting.Value, p.Min, p.Max) : p.Default;
                 Material.SetFloat(p.Property, value);
             }
         }

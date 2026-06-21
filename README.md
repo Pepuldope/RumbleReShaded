@@ -14,8 +14,8 @@ both eyes, with full VR support.
 
 - **RUMBLE** (PC / Steam)
 - **MelonLoader**
-- **ModUI** (`Baumritter-RumbleModUI`) — RumbleReShaded registers all its toggles and
-  sliders there. The mod manager installs it automatically as a dependency.
+- **UIFramework** (`Reverb_and___and_Spice-UIFramework`) — RumbleReShaded registers all its
+  toggles and sliders there. The mod manager installs it automatically as a dependency.
 
 ## Install
 
@@ -25,9 +25,9 @@ everything in the right place. Manual install:
 - `Mods/RumbleReShaded.dll` → `RUMBLE/Mods/`
 - `UserData/*` → `RUMBLE/UserData/` (the example pack folders)
 
-Launch the game, open **ModUI → RumbleReShaded**, and toggle a pack on. Every pack gets
-its own on/off switch plus a live slider for each parameter it exposes. Changes apply as
-soon as you save.
+Launch the game and open the **UIFramework** menu (default: **F9** on a keyboard, or in VR
+press both triggers + both face buttons **A/X** together). Find **RumbleReShaded**, toggle a
+pack on, and adjust its sliders — changes apply live as you drag.
 
 ## Included packs
 
@@ -91,10 +91,10 @@ mod, get in touch — I'm happy to help wire it up.
 
 | Symptom | Likely cause |
 |---|---|
-| Pack doesn't appear in ModUI | `manifest.json` missing or has a JSON typo; or two packs share the same `name`. |
+| Pack doesn't appear in the menu | `manifest.json` missing or has a JSON typo; or two packs share the same `name`. |
 | Pack toggles on but nothing changes | The shader output equals the input at current slider values, or the bundle was built wrong — see the authoring guide. |
 | Magenta screen | Shader failed to compile/load — a pack must be built with the exact Unity version the game runs. |
-| Nothing works at all | Make sure **Enabled** is on, and that MelonLoader + ModUI loaded (`MelonLoader/Latest.log`). |
+| Nothing works at all | Make sure **Enabled** is on, and that MelonLoader + UIFramework loaded (`MelonLoader/Latest.log`). |
 
 ## Source code
 
@@ -108,7 +108,7 @@ only ever reads the **already-rendered frame** (plus the standard depth buffer f
 effects) and only changes how *your own* view looks — it touches no physics, no match state,
 and nothing an opponent can observe.
 
-- [`src/RumbleReShaded/Main.cs`](src/RumbleReShaded/Main.cs) — the render pass + ModUI wiring.
+- [`src/RumbleReShaded/Main.cs`](src/RumbleReShaded/Main.cs) — the render pass + UIFramework wiring.
 - [`src/RumbleReShaded/ShaderPack.cs`](src/RumbleReShaded/ShaderPack.cs) — pack discovery, manifest parsing, AssetBundle loading.
 
 Build it with the .NET SDK against a local RUMBLE install (`dotnet build -c Release`); the
@@ -116,4 +116,4 @@ Build it with the .NET SDK against a local RUMBLE install (`dotnet build -c Rele
 
 ## Credits
 
-Mod by **Pepuldo**. Built on MelonLoader, Il2CppInterop and ModUI.
+Mod by **Pepuldo**. Built on MelonLoader, Il2CppInterop and UIFramework.

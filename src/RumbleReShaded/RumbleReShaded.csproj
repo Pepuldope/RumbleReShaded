@@ -49,8 +49,8 @@
       <HintPath>$(GamePath)\MelonLoader\Il2CppAssemblies\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="ModUI">
-      <HintPath>$(GamePath)\Mods\ModUI.dll</HintPath>
+    <Reference Include="UIFramework">
+      <HintPath>$(GamePath)\Mods\UIFramework.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using MelonLoader;
 using MelonLoader.Utils;
-using RumbleModUI;
+using UIFramework;
+using UIFramework.UiExtensions;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -17,7 +18,7 @@ namespace RumbleReShaded
     public static class BuildInfo
     {
         public const string ModName = "RumbleReShaded";
-        public const string ModVersion = "1.0.0";
+        public const string ModVersion = "1.1.0";
         public const string Description = "Loads community shader packs from UserData and applies them as VR-safe post effects. Make your own with the RumbleShade template!";
         public const string Author = "Pepuldo";
     }
@@ -79,6 +80,10 @@ namespace RumbleReShaded
             foreach (ShaderPack pack in RumbleReShadedMod.Packs)
             {
                 if (!pack.IsEnabled || !pack.EnsureLoaded()) continue;
+                // Push the current slider values into the material every frame, so
+                // dragging a slider in the UIFramework menu updates the look live
+                // (no settings-save callback needed).
+                pack.ApplyParameters();
 
                 // Can't sample the texture we render into, so copy (resolving MSAA via
                 // a fragment blit) the live image to a temp, then blit the temp back
@@ -104,9 +109,7 @@ namespace RumbleReShaded
 
     public class RumbleReShadedMod : MelonMod
     {
-        public static Mod Mod = new Mod();
-        private static ModSetting<bool> masterEnabled;
-        private static ModSetting<bool> reloadPacks;
+        private static MelonPreferences_Entry<bool> masterEnabled;
 
         private static readonly List<ShaderPack> packs = new List<ShaderPack>();
         public static IReadOnlyList<ShaderPack> Packs => packs;
@@ -133,7 +136,43 @@ namespace RumbleReShaded
             catch (Exception e) { MelonLogger.Warning("RRSRenderPass already registered or registration failed: " + e.Message); }
 
             ScanPacks();
+            BuildSettings();
             MelonLogger.Msg($"RumbleReShaded loaded, {packs.Count} shader pack(s) found in UserData.");
+        }
+
+        // Build the UIFramework menu from the discovered packs. One category holds the
+        // master switch + a Reload button; each pack gets its own category with an
+        // on/off toggle and a slider per parameter. Settings persist via
+        // MelonPreferences (UserData/MelonPreferences.cfg).
+        private void BuildSettings()
+        {
+            List<MelonPreferences_Category> categories = new List<MelonPreferences_Category>();
+
+            MelonPreferences_Category mainCat = MelonPreferences.CreateCategory("RumbleReShaded", "RumbleReShaded");
+            masterEnabled = mainCat.CreateEntry("Enabled", true, "Enabled", "Master switch for all shader packs.");
+            // A real button: re-read every pack bundle from disk (handy while authoring).
+            UI.CreateButtonEntry(mainCat, "Reload", "Reload packs",
+                "Re-read all shader pack bundles from disk.",
+                (Action)(() =>
+                {
+                    foreach (ShaderPack pack in packs) pack.Unload();
+                    MelonLogger.Msg("Shader packs will reload from disk.");
+                }));
+            categories.Add(mainCat);
+
+            foreach (ShaderPack pack in packs)
+            {
+                MelonPreferences_Category cat = MelonPreferences.CreateCategory("RRS_" + pack.Name, pack.Name);
+                string author = pack.Author.Length > 0 ? " by " + pack.Author : "";
+                pack.EnabledSetting = cat.CreateEntry("Enabled", true, "Enabled", $"Enable the '{pack.Name}' shader pack{author}.");
+                foreach (PackParameter p in pack.Parameters)
+                    p.Setting = cat.CreateEntry(p.Property, p.Default, p.Label, $"{p.Label} ({p.Min} to {p.Max})",
+                        false, false, new SliderDescriptor { Min = p.Min, Max = p.Max, DecimalPlaces = 2 });
+                categories.Add(cat);
+            }
+
+            UI.RegisterMelon(this, categories.ToArray());
+            MelonLogger.Msg("RumbleReShaded settings registered with UIFramework.");
         }
 
         private static void ScanPacks()
@@ -160,8 +199,6 @@ namespace RumbleReShaded
 
         public override void OnLateInitializeMelon()
         {
-            UI.instance.UI_Initialized += OnUIInit;
-
             if (!hooked)
             {
                 hooked = true;
@@ -179,65 +216,6 @@ namespace RumbleReShaded
             }
         }
 
-        public void OnUIInit()
-        {
-            Mod.ModName = BuildInfo.ModName;
-            Mod.ModVersion = BuildInfo.ModVersion;
-            Mod.SetFolder("RumbleReShaded");
-            Mod.AddDescription("Description", "", BuildInfo.Description, new Tags { IsSummary = true });
-
-            masterEnabled = Mod.AddToList("Enabled", true, 0, "Master switch for all shader packs.", new Tags());
-            reloadPacks = Mod.AddToList("Reload packs", false, 0, "Turn on and save to re-read all shader pack bundles from disk. Useful while developing a shader.", new Tags());
-
-            foreach (ShaderPack pack in packs)
-            {
-                string author = pack.Author.Length > 0 ? " by " + pack.Author : "";
-                pack.EnabledSetting = Mod.AddToList(pack.Name, true, 0, $"Enable the '{pack.Name}' shader pack{author}.", new Tags());
-                // Separator must NOT contain ": " — ModUI's Settings.txt is a
-                // "Key: Value" format, so a ": " inside the setting name produces a
-                // line like "Pack: Param: 1" that ModUI mis-parses ("File Read
-                // Error") and the saved value is lost. Use " - " instead.
-                foreach (PackParameter p in pack.Parameters)
-                    p.Setting = Mod.AddToList($"{pack.Name} - {p.Label}", p.Default, $"{p.Label} ({p.Min} to {p.Max})", new Tags());
-            }
-
-            Mod.GetFromFile();
-            Mod.ModSaved += OnModSaved;
-            UI.instance.AddMod(Mod);
-            MelonLogger.Msg("RumbleReShaded settings registered!");
-        }
-
-        private void OnModSaved()
-        {
-            bool corrected = false;
-            foreach (ShaderPack pack in packs)
-            {
-                foreach (PackParameter p in pack.Parameters)
-                {
-                    if (p.Setting == null) continue;
-                    float clamped = Mathf.Clamp((float)p.Setting.Value, p.Min, p.Max);
-                    if ((float)p.Setting.Value != clamped)
-                    {
-                        p.Setting.Value = clamped;
-                        p.Setting.SavedValue = clamped;
-                        corrected = true;
-                    }
-                }
-            }
-
-            if (reloadPacks != null && (bool)reloadPacks.Value)
-            {
-                reloadPacks.Value = false;
-                reloadPacks.SavedValue = false;
-                corrected = true;
-                foreach (ShaderPack pack in packs) pack.Unload();
-                MelonLogger.Msg("Shader packs will reload from disk.");
-            }
-
-            foreach (ShaderPack pack in packs) pack.ApplyParameters();
-            if (corrected) UI.instance.ForceRefresh();
-        }
-
         private static bool AnyPackEnabled()
         {
             foreach (ShaderPack pack in packs)
@@ -249,7 +227,7 @@ namespace RumbleReShaded
         // (RRSRenderPass.RecordRenderGraph) decides what to do once inside the graph.
         private static void OnBeginCameraRendering(ScriptableRenderContext context, Camera cam)
         {
-            if (masterEnabled == null || !(bool)masterEnabled.Value) return;
+            if (masterEnabled == null || !masterEnabled.Value) return;
             if (cam == null || cam.targetTexture != null || !cam.stereoEnabled) return;
             if (!DebugSolidFill && !AnyPackEnabled()) return;
 
