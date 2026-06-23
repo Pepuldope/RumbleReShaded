@@ -23,7 +23,7 @@ Install with your mod manager (r2modman / Thunderstore Mod Manager) and it drops
 everything in the right place. Manual install:
 
 - `Mods/RumbleReShaded.dll` → `RUMBLE/Mods/`
-- `UserData/*` → `RUMBLE/UserData/` (the example pack folders)
+- `UserData/RumbleReShaded/*` → `RUMBLE/UserData/RumbleReShaded/` (the example pack folders)
 
 Launch the game and open the **UIFramework** menu (default: **F9** on a keyboard, or in VR
 press both triggers + both face buttons **A/X** together). Find **RumbleReShaded**, toggle a
@@ -31,7 +31,7 @@ pack on, and adjust its sliders — changes apply live as you drag.
 
 ## Included packs
 
-Two example packs ship in `UserData/` — both genuinely usable, not just demos:
+Two example packs ship in `UserData/RumbleReShaded/` — both genuinely usable, not just demos:
 
 - **Grayscale** — one *Strength* slider, desaturates the whole view. The "hello world" of
   RumbleShade.
@@ -113,6 +113,10 @@ and nothing an opponent can observe.
 
 Build it with the .NET SDK against a local RUMBLE install (`dotnet build -c Release`); the
 `.csproj` references the game's MelonLoader assemblies via `<GamePath>`.
+
+For the full technical write-up — the URP RenderGraph injection, VR stereo/MSAA handling,
+the dead ends that *don't* work, and the blit convention pack shaders follow — see
+**[docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)**.
 
 ## Credits
 
