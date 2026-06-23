@@ -15,15 +15,17 @@ both eyes, with full VR support.
 - **RUMBLE** (PC / Steam)
 - **MelonLoader**
 - **UIFramework** (`Reverb_and___and_Spice-UIFramework`) — RumbleReShaded registers all its
-  toggles and sliders there. The mod manager installs it automatically as a dependency.
+  toggles and sliders there. Install it too if you don't have it.
 
 ## Install
 
-Install with your mod manager (r2modman / Thunderstore Mod Manager) and it drops
-everything in the right place. Manual install:
+Download **`RumbleReShaded.zip`** (in this repo) and unzip it anywhere — your Downloads
+folder is fine. Then copy its contents into your RUMBLE install:
 
 - `Mods/RumbleReShaded.dll` → `RUMBLE/Mods/`
 - `UserData/RumbleReShaded/*` → `RUMBLE/UserData/RumbleReShaded/` (the example pack folders)
+
+(Your RUMBLE folder is the one with `RUMBLE.exe` — e.g. `…/steamapps/common/RUMBLE`.)
 
 Launch the game and open the **UIFramework** menu (default: **F9** on a keyboard, or in VR
 press both triggers + both face buttons **A/X** together). Find **RumbleReShaded**, toggle a
