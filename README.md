@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="icon.png" alt="RumbleReShaded" width="180">
+</p>
+
 # RumbleReShaded
 
 **Shaders for RUMBLE.** A MelonLoader mod that loads community-made **shader packs** and
