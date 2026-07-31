@@ -27,7 +27,11 @@ Download **`RumbleReShaded.zip`** (in this repo) and unzip it anywhere — your 
 folder is fine. Then copy its contents into your RUMBLE install:
 
 - `Mods/RumbleReShaded.dll` → `RUMBLE/Mods/`
-- `UserData/RumbleReShaded/*` → `RUMBLE/UserData/RumbleReShaded/` (the example pack folders)
+- `UserData/*` → `RUMBLE/UserData/` (the example pack folders)
+
+Packs go **one level under `UserData/`** — so you end up with `RUMBLE/UserData/Grayscale/`
+and `RUMBLE/UserData/UltraShade/`, each containing a `manifest.json`. Folders without a
+manifest are ignored, so this sits happily alongside other mods' `UserData` folders.
 
 (Your RUMBLE folder is the one with `RUMBLE.exe` — e.g. `…/steamapps/common/RUMBLE`.)
 
@@ -37,7 +41,7 @@ pack on, and adjust its sliders — changes apply live as you drag.
 
 ## Included packs
 
-Two example packs ship in `UserData/RumbleReShaded/` — both genuinely usable, not just demos:
+Two example packs ship in `UserData/` — both genuinely usable, not just demos:
 
 - **Grayscale** — one *Strength* slider, desaturates the whole view. The "hello world" of
   RumbleShade.
