@@ -117,7 +117,7 @@ The RumbleShade template's example shaders are the canonical reference for this;
 
 ## Pack discovery & UIFramework
 
-- On startup the mod scans `UserData/*/manifest.json`, builds a `ShaderPack`
+- On startup the mod scans `UserData/RumbleReShaded/*/manifest.json`, builds a `ShaderPack`
   for each (name, bundle file, material name, parameters, render queue). Folders without a
   `manifest.json` are skipped, so it coexists with other mods' `UserData` folders.
 - AssetBundles are loaded **lazily** on first enable (`LoadFromFile`, with a

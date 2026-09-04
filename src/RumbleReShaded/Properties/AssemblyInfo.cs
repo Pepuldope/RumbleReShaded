@@ -13,5 +13,8 @@ using MelonLoader;
 [assembly: AssemblyCopyright("Copyright © 2026")]
 [assembly: ComVisible(false)]
 [assembly: Guid("9d54c1aa-3e87-4f60-92cb-7b18e5a0d427")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+// Numeric only — .NET assembly versions can't carry a "-dev" prerelease tag.
+// The canonical/prerelease version lives in BuildInfo.ModVersion (→ MelonInfo); keep the
+// X.Y.Z base here in sync with it (drop the suffix).
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]

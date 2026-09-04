@@ -49,7 +49,7 @@ Assets/
   PackSource/               One folder per pack, each with a manifest.json
   Editor/
     ShaderPackBuilder.cs    The "Build Shader Packs" menu
-Build/                      Output — copy each folder into the game's UserData/
+Build/                      Output — copy each folder into UserData/RumbleReShaded/
 ```
 
 ## One-time project setup (required for VR)
@@ -71,7 +71,7 @@ Global Settings → Shader Stripping → uncheck *Strip Unused Variants*
 ## Build process
 
 Menu bar → **RumbleShade → Build Shader Packs** → outputs to `Build/<PackName>/`.
-Copy each output folder into `RUMBLE/UserData/`. In-game: open the
+Copy each output folder into `RUMBLE/UserData/RumbleReShaded/`. In-game: open the
 UIFramework menu → RumbleReShaded → flip **Reload packs** (no restart needed).
 
 **Verify a good build** (this catches almost every "nothing renders" problem): open
@@ -187,7 +187,7 @@ float3 right = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, input.texco
 3. **Pack folder:** duplicate a folder in `Assets/PackSource/`, rename it, edit its
    `manifest.json` (see schema below). Every adjustable shader property must be both a
    `Properties { }` entry in the shader *and* a `parameters` entry in the manifest.
-4. **Build Shader Packs**, copy `Build/<Name>/` into `UserData/`, reload.
+4. **Build Shader Packs**, copy `Build/<Name>/` into `UserData/RumbleReShaded/`, reload.
 
 ## Manifest schema
 

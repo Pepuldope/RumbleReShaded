@@ -53,6 +53,22 @@
       <HintPath>$(GamePath)\Mods\UIFramework.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- The game's own code. Needed only for the built-in trigger hooks
+         (Hooks.cs) — Structure.OnPhysicsStateChanged and friends. -->
+    <Reference Include="Il2CppRUMBLE.Runtime">
+      <HintPath>$(GamePath)\MelonLoader\Il2CppAssemblies\Il2CppRUMBLE.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Structure derives from PooledMonoBehaviour → MonoBehaviourPun, so the
+         compiler needs Photon even though we never touch networking ourselves. -->
+    <Reference Include="Il2CppPhotonUnityNetworking">
+      <HintPath>$(GamePath)\MelonLoader\Il2CppAssemblies\Il2CppPhotonUnityNetworking.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(GamePath)\MelonLoader\net6\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <!-- Copies the built mod into the game's Mods folder. Fails silently if the

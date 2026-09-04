@@ -17,7 +17,7 @@ runs in VR.
    - create a material from it → `Assets/Materials/M_<Name>.mat`
    - new folder `Assets/PackSource/<Name>/` with the `manifest.json`
 5. **RumbleShade → Build Shader Packs**, copy `Build/<Name>/` into
-   `UserData/`, and flip **Reload packs** in the UIFramework menu.
+   `UserData/RumbleReShaded/`, and flip **Reload packs** in the UIFramework menu.
 6. **Iterate:** if something looks off, tell Claude what you see ("too dark", "fog is
    too strong", "I want the vignette tighter") and rebuild.
 
