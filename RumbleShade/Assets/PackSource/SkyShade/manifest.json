@@ -1,0 +1,16 @@
+{
+    "name": "SkyShade",
+    "author": "Pepuldo",
+    "version": "1.0.0",
+    "bundle": "skyshade.bundle",
+    "material": "M_SkyShade",
+    "priority": 3,
+    "parameters": [
+        { "property": "_DebugMask", "label": "Debug - show mask", "default": 0.0, "min": 0.0, "max": 1.0 },
+        { "property": "_Invert", "label": "Invert mask - 0 sky 1 world", "default": 0.0, "min": 0.0, "max": 1.0 },
+        { "property": "_Strength", "label": "Strength", "default": 1.0, "min": 0.0, "max": 1.0 },
+        { "property": "_Brightness", "label": "Brightness", "default": 1.0, "min": 0.0, "max": 3.0 },
+        { "property": "_Saturation", "label": "Saturation", "default": 0.2, "min": 0.0, "max": 2.0 },
+        { "property": "_TintAmount", "label": "Tint Amount", "default": 1.0, "min": 0.0, "max": 1.0 }
+    ]
+}

@@ -1,0 +1,31 @@
+# Unity — generated, machine-local, or rebuildable. None of this belongs in the repo.
+/Library/
+/Logs/
+/UserSettings/
+/Temp/
+/Obj/
+/obj/
+/Builds/
+/[Mm]emoryCaptures/
+/.vs/
+/.vscode/
+/.idea/
+
+# "Build Shader Packs" output — regenerate it locally, don't commit bundles.
+/Build/
+
+*.csproj
+*.sln
+*.unityproj
+*.user
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+.DS_Store
+*.stackdump
+*.stackdump.meta

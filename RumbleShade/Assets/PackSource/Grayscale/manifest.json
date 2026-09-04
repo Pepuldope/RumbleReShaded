@@ -1,0 +1,11 @@
+{
+    "name": "Grayscale",
+    "author": "Pepuldo",
+    "version": "1.0.0",
+    "bundle": "grayscale.bundle",
+    "material": "M_Grayscale",
+    "priority": 1,
+    "parameters": [
+        { "property": "_Strength", "label": "Strength", "default": 1.0, "min": 0.0, "max": 1.0 }
+    ]
+}

@@ -68,7 +68,7 @@ then build it.
 
 > **One honest caveat:** because RUMBLE is an Il2Cpp build with no runtime shader compiler,
 > every shader — in *any* RUMBLE mod — has to be pre-compiled into a Unity AssetBundle.
-> So you do need Unity to build a pack. The companion **RumbleShade** template project makes
+> So you do need Unity to build a pack. The companion **[RumbleShade](RumbleShade/)** template project makes
 > that a one-click "Build Shader Packs" step; you don't configure anything. That build is
 > the only tool requirement, and it's the same step every RUMBLE shader modder already does.
 
@@ -81,7 +81,10 @@ See the **[`ShaderCreation/`](ShaderCreation/)** folder included here:
   what screen-space shaders can and can't do, the shader convention, the build process,
   and a troubleshooting table.
 
-The packs are built from the companion **RumbleShade** Unity template project.
+The packs are built from the companion **[RumbleShade](RumbleShade/)** Unity template
+project, included in this repo — open `RumbleShade/` in Unity `6000.3.0f1` and use
+**RumbleShade → Build Shader Packs**. Its [README](RumbleShade/README.md) is the full
+authoring reference.
 
 ## For mod developers — build on top of it
 
