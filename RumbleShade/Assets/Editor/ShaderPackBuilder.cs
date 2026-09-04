@@ -7,7 +7,7 @@ using UnityEngine;
 // Builds every pack under Assets/PackSource into a ready-to-install folder.
 // Each pack folder needs a manifest.json naming its bundle file and material.
 // Output goes to <project>/Build/<PackName>/ — copy that folder into the game's
-// UserData/RumbleReShaded/ directory.
+// UserData/ directory.
 public static class ShaderPackBuilder
 {
     [MenuItem("RumbleShade/Build Shader Packs")]
