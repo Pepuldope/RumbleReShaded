@@ -1,4 +1,4 @@
-## v1.3.0-dev.1
+## v1.2.0-dev.2
 For mods that drive packs (additive API, `ApiVersion` unchanged):
 - **`RRS.Override(modId, pack)`** - take temporary control of a pack's on/off and sliders without touching the player's settings. Returns a `PackOverride`: set `Enabled`, `Set(parameter, value)` by label or shader property, blend with `Weight` (0..1, so a fade is just animating it), and `Dispose()` to hand the pack back. Nothing is saved, so the menu keeps showing the player's own choices and a crash can't leave someone else's look in their config. Overrides from several mods stack in creation order.
 - **`RRS.Packs`** - a snapshot of installed packs: id, name, author, and each parameter's range and default, with both the player's value and the value in use once overrides are blended in.

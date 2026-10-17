@@ -23,7 +23,7 @@ namespace RumbleReShaded
         // Dev/test builds shared on Discord/GitHub carry a "-dev" prerelease suffix; SemVer
         // sorts e.g. "1.2.0-dev" BELOW the clean "1.2.0", so once the tested stable release
         // ships, Lum flags every dev build as outdated. Stable release = drop the suffix.
-        public const string ModVersion = "1.2.0-dev.1";
+        public const string ModVersion = "1.2.0-dev.2";
         public const string Description = "Loads community shader packs from UserData and applies them as VR-safe post effects. Make your own with the RumbleShade template!";
         public const string Author = "Pepuldo";
     }

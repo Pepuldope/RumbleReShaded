@@ -103,6 +103,32 @@ authors write a shader and everyone can install it, rather than every visual eff
 welded into a separate one-off mod. If that's a direction you'd find useful for your own
 mod, get in touch — I'm happy to help wire it up.
 
+### Driving installed packs from your mod (1.2.0-dev.2+)
+
+Add `[assembly: MelonAdditionalDependencies("RumbleReShaded")]` (or `MelonOptionalDependencies`) and
+reference `RumbleReShaded.dll`. Everything lives on `RumbleReShaded.Api.RRS`:
+
+```csharp
+// Take a pack over for a while - the player's own settings are never touched.
+PackOverride look = RRS.Override("mymod", "UltraShade");
+look.Enabled = true;
+look.Set("Saturation", 0.2f);   // by slider label or shader property
+look.Weight = fade;             // 0..1 - blends from the player's values to yours
+// ...
+look.Dispose();                 // hands the pack back
+```
+
+- **`RRS.Override`** never writes MelonPreferences, so the menu keeps showing the player's choices
+  and a crash can't leave your look in their config. Overrides from several mods stack in the order
+  they were made.
+- **`RRS.Packs`** lists installed packs and their sliders: range, default, the player's value and the
+  value in use.
+- **`RRS.Preload(pack)`** loads a pack's bundle ahead of time (a countdown, a loading screen) so the
+  first frame it's on doesn't hitch.
+- **`RRS.Enabled`** is the player's master switch; nothing renders while it's off.
+- **`RRS.Fire`** sends a one-shot event packs can `listen` for, and **`RRS.SetGlobal("mymod.charge", v)`**
+  a value shaders read as `_RRS_mymod_charge`. Names are always namespaced `modid.name`.
+
 ## Troubleshooting
 
 | Symptom | Likely cause |
