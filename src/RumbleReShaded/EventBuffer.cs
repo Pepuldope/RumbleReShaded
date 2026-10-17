@@ -106,6 +106,10 @@ namespace RumbleReShaded
         public static void SetGlobal(string key, float value)
         {
             if (!ValidateName(key, "global key")) return;
+            // A shader property name cannot contain '.', so "_RRS_mymod.charge" was
+            // unreadable from HLSL. The '.' becomes '_' ("_RRS_mymod_charge"); the dotted
+            // name is still set for anything that already reads it through Shader.GetGlobalFloat.
+            Shader.SetGlobalFloat("_RRS_" + key.Replace('.', '_'), value);
             Shader.SetGlobalFloat("_RRS_" + key, value);
         }
 
@@ -231,7 +235,7 @@ namespace RumbleReShaded
                 "A pack reacts to it only if its manifest lists this exact name in \"listen\".");
         }
 
-        private static void WarnOnce(string key, string message)
+        internal static void WarnOnce(string key, string message)
         {
             lock (gate)
             {

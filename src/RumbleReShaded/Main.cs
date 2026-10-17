@@ -202,6 +202,20 @@ namespace RumbleReShaded
         private static readonly List<ShaderPack> packs = new List<ShaderPack>();
         public static IReadOnlyList<ShaderPack> Packs => packs;
 
+        // By id first, then display name - the name is what people type, the id is what is
+        // unique. Case-insensitive for the same reason.
+        internal static ShaderPack FindPack(string idOrName)
+        {
+            if (string.IsNullOrEmpty(idOrName)) return null;
+            foreach (ShaderPack pack in packs)
+                if (string.Equals(pack.Id, idOrName, StringComparison.OrdinalIgnoreCase)) return pack;
+            foreach (ShaderPack pack in packs)
+                if (string.Equals(pack.Name, idOrName, StringComparison.OrdinalIgnoreCase)) return pack;
+            return null;
+        }
+
+        internal static bool MasterEnabled => masterEnabled == null || masterEnabled.Value;
+
         private static bool hooked;
         private static RRSRenderPass pass;
         private static RRSMaskPass maskPass;
