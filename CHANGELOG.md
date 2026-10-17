@@ -1,3 +1,12 @@
+## v1.2.0-dev.2
+For mods that drive packs (additive API, `ApiVersion` unchanged):
+- **`RRS.Override(modId, pack)`** - take temporary control of a pack's on/off and sliders without touching the player's settings. Returns a `PackOverride`: set `Enabled`, `Set(parameter, value)` by label or shader property, blend with `Weight` (0..1, so a fade is just animating it), and `Dispose()` to hand the pack back. Nothing is saved, so the menu keeps showing the player's own choices and a crash can't leave someone else's look in their config. Overrides from several mods stack in creation order.
+- **`RRS.Packs`** - a snapshot of installed packs: id, name, author, and each parameter's range and default, with both the player's value and the value in use once overrides are blended in.
+- **`RRS.Preload(pack)`** - load a pack's bundle now (during a countdown or loading screen) instead of hitching the first frame it's switched on.
+- **`RRS.Enabled`** - the player's master switch.
+- **Fix: a pack loaded before it was first drawn could fail for the whole session** ("Unity refused the bundle"). Unity freed the unused material, and reloading the still-loaded bundle file was refused. The material is now kept from being freed, and if it is lost anyway it is taken from the loaded bundle again.
+- **`RRS.SetGlobal` names are now readable from shaders**: `"mymod.charge"` is published as `_RRS_mymod_charge` (a `.` can't appear in a shader property name). The dotted name is still set too.
+
 ## v1.2.0-dev.1
 - **A failure in the render pass no longer takes the game down.** If the pass throws, the mod reports it once, switches its effects off and lets the game carry on — previously an exception inside URP's render-graph recording killed the process, and because packs default to on it could do so before you ever reached the menu.
 - **It retries by itself.** After a failure the pass tries again on the next scene load, up to three times, then stays off until you restart. A one-off glitch heals with nothing to do; a real fault stops after three log entries instead of spamming.

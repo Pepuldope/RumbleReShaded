@@ -65,14 +65,83 @@ namespace RumbleReShaded.Api
         // ---- continuous values ----------------------------------------------
 
         /// <summary>
-        /// Push a named global float, readable in any shader as "_RRS_" + key. For
-        /// sustained state (charge level, health, match phase) rather than moments.
+        /// Push a named global float, readable in any shader as "_RRS_" + key with the '.'
+        /// turned into '_' ("mymod.charge" is <c>_RRS_mymod_charge</c>). For sustained state
+        /// (charge level, health, match phase) rather than moments.
         /// </summary>
         /// <param name="key">MUST be namespaced "modid.name", same rule as channels.</param>
         public static void SetGlobal(string key, float value)
         {
             if (!Ready) return;
             EventBuffer.SetGlobal(key, value);
+        }
+
+        // ---- reading and driving installed packs ------------------------------
+
+        /// <summary>
+        /// The player's master switch. While false nothing renders, overrides included - read it
+        /// before doing work that only matters when packs are visible.
+        /// </summary>
+        public static bool Enabled => RumbleReShadedMod.MasterEnabled;
+
+        /// <summary>
+        /// A snapshot of every installed pack: id, name, parameters with their ranges and the
+        /// player's values. Empty until packs are collected (after every mod's OnInitializeMelon);
+        /// read it again after "Reload packs".
+        /// </summary>
+        public static IReadOnlyList<PackInfo> Packs
+        {
+            get
+            {
+                var snapshot = new List<PackInfo>();
+                foreach (var pack in RumbleReShadedMod.Packs) snapshot.Add(new PackInfo(pack));
+                return snapshot;
+            }
+        }
+
+        /// <summary>
+        /// Load a pack's bundle now rather than on the first frame it is switched on, which
+        /// otherwise hitches that frame. Call it somewhere a hitch is harmless (a countdown, a
+        /// loading screen). Main thread only. A pack stays loaded once loaded.
+        /// </summary>
+        /// <param name="pack">Pack id or display name, case-insensitive.</param>
+        /// <returns>True if the pack is loaded; false if there is no such pack or it failed to load (logged).</returns>
+        public static bool Preload(string pack)
+        {
+            if (!Ready) return false;
+            var found = RumbleReShadedMod.FindPack(pack);
+            if (found == null)
+            {
+                EventBuffer.WarnOnce("preload:" + pack, $"RumbleReShaded: Preload(\"{pack}\") - no such pack is installed.");
+                return false;
+            }
+            return found.EnsureLoaded();
+        }
+
+        /// <summary>
+        /// Take temporary control of a pack's on/off and sliders without touching the player's
+        /// settings. Dispose the returned <see cref="PackOverride"/> to hand it back. See
+        /// <see cref="PackOverride"/> for how weights and several overrides combine.
+        /// <code>
+        /// using PackOverride look = RRS.Override("mymod", "UltraShade");
+        /// look.Enabled = true;
+        /// look.Set("Saturation", 0.2f);
+        /// look.Weight = fade;   // 0..1, every frame if you like
+        /// </code>
+        /// </summary>
+        /// <param name="modId">Your mod's id, as for <see cref="RegisterPack(string, string, byte[])"/> - used in log lines.</param>
+        /// <param name="pack">Pack id or display name, case-insensitive.</param>
+        /// <returns>The override, or null (with a one-time warning) if there is no such pack or RRS is not ready.</returns>
+        public static PackOverride Override(string modId, string pack)
+        {
+            if (!Ready || string.IsNullOrEmpty(modId)) return null;
+            var found = RumbleReShadedMod.FindPack(pack);
+            if (found == null)
+            {
+                EventBuffer.WarnOnce("override:" + pack, $"RumbleReShaded: '{modId}' tried to override \"{pack}\" - no such pack is installed.");
+                return null;
+            }
+            return PackOverrides.Create(modId, found);
         }
 
         // ---- shipping a shader pack inside your own mod ----------------------

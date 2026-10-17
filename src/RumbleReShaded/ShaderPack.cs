@@ -129,7 +129,9 @@ namespace RumbleReShaded
         public float DefaultOrder => Mathf.Clamp(RenderQueue - 2600, 0f, MaxOrder);
         public const float MaxOrder = 20f;
 
-        public bool IsEnabled => EnabledSetting == null || EnabledSetting.Value;
+        // What the frame uses: the player's toggle, unless another mod holds a temporary
+        // override (RRS.Override). The toggle itself is never written by an override.
+        public bool IsEnabled => PackOverrides.EffectiveEnabled(this, EnabledSetting == null || EnabledSetting.Value);
 
         public static ShaderPack FromFolder(string folder)
         {
@@ -265,6 +267,14 @@ namespace RumbleReShaded
             if (Material != null) return true;
             if (LoadFailed) return false;
 
+            // The material is gone but the bundle is still loaded: Unity freed the material as
+            // unused (Resources.UnloadUnusedAssets - scene loads and the game itself run it), which
+            // happens to a pack loaded before anything draws with it, e.g. through RRS.Preload.
+            // Loading the bundle FILE again would fail - Unity refuses a bundle that is already
+            // loaded, and that failure latches LoadFailed for the session - so take the material
+            // from the bundle we still hold.
+            if (Bundle != null && TakeMaterialFromBundle()) return true;
+
             string bundlePath = null;
             if (!IsEmbedded)
             {
@@ -316,8 +326,7 @@ namespace RumbleReShaded
                     return false;
                 }
 
-                Material = Bundle.LoadAsset<Material>(MaterialName);
-                if (Material == null)
+                if (!TakeMaterialFromBundle())
                 {
                     MelonLogger.Warning($"Shader pack '{Name}': material '{MaterialName}' not found in bundle.");
                     Unload();
@@ -328,8 +337,6 @@ namespace RumbleReShaded
                 if (Material.shader == null || !Material.shader.isSupported)
                     MelonLogger.Warning($"Shader pack '{Name}': shader reports unsupported — it may render magenta. Rebuild the pack with Unity {Application.unityVersion}.");
 
-                Material.renderQueue = EffectiveQueue;
-                ApplyParameters();
                 MelonLogger.Msg($"Shader pack '{Name}' loaded (queue {EffectiveQueue}, {SourceLabel}).");
                 LogChannelBinding();
                 return true;
@@ -341,6 +348,20 @@ namespace RumbleReShaded
                 LoadFailed = true;
                 return false;
             }
+        }
+
+        // The material out of the loaded bundle, made ready to draw. Flagged so Unity's
+        // UnloadUnusedAssets leaves it alone: until a pack is switched on nothing in the scene
+        // references its material, and a preloaded pack would otherwise lose it before first use.
+        private bool TakeMaterialFromBundle()
+        {
+            Material = Bundle.LoadAsset<Material>(MaterialName);
+            if (Material == null) return false;
+
+            Material.hideFlags |= HideFlags.DontUnloadUnusedAsset;
+            Material.renderQueue = EffectiveQueue;
+            ApplyParameters();
+            return true;
         }
 
         private static AssetBundle LoadViaStream(byte[] managedBytes)
@@ -363,8 +384,8 @@ namespace RumbleReShaded
             if (Material == null) return;
             foreach (PackParameter p in Parameters)
             {
-                float value = p.Setting != null ? Mathf.Clamp(p.Setting.Value, p.Min, p.Max) : p.Default;
-                Material.SetFloat(p.Property, value);
+                float playerValue = p.Setting != null ? p.Setting.Value : p.Default;
+                Material.SetFloat(p.Property, PackOverrides.EffectiveValue(this, p, playerValue));
             }
             // Resolve the manifest's channel names to ids. Set every frame alongside the
             // parameters rather than once at load, so "Reload packs" picks up a manifest
