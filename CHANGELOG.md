@@ -3,6 +3,7 @@
 - **Quieter log** - the diagnostic lines this mod wrote during play are off by default now (a structure hit logged twice a second on its own). A new **Debug logging** setting turns them back on - turn it on before reporting a problem. Warnings and errors are unaffected.
 - **Each eye's position and lens, as shader globals** - `_RRS_eyes`, `_RRS_eyeToWorld0`/`1` and `_RRS_eyeInvProjection0`/`1`, so a pack can build a ray through a pixel from where the eye really is. Without them a pack drawing in the air showed it on the surfaces behind instead in VR, as if both eyes shared one position. See `ShaderCreation/AUTHORING_GUIDE.md`.
 - **Live link** (off by default) - lets a tool on this PC preview looks in the running game, through `RRS.Override`, and set shader globals as a mod does during play (a beat, a clock), which go back to 0 when it leaves. A new setting turns it on; it listens on this PC only, and your settings are never changed. See `docs/LIVE_LINK.md`.
+- **Removed unreachable dev scaffolding** - the mask sandwich ladder, the RenderGraph mask route (hard-disabled since it crashed a PC), the category tagger and recolour, the scene survey and the solid-fill probe: ~2,900 lines no shipped build could reach, because every entry point was parked and every switch pinned off. No behaviour change, and it clears both compiler warnings. All of it is in the git history if it is ever wanted back.
 
 ## v1.2.0-dev.2
 For mods that drive packs (additive API, `ApiVersion` unchanged):

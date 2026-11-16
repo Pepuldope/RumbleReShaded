@@ -68,22 +68,6 @@ namespace RumbleReShaded
             TextureHandle activeColor = resourceData.activeColorTexture;
             if (!activeColor.IsValid()) return;
 
-            if (RumbleReShadedMod.DebugSolidFill)
-            {
-                // No material/shader involved: create a cleared (black) texture with
-                // the same descriptor and copy it over the active colour. If the view
-                // goes black, injection + targeting + presentation all work, and the
-                // only remaining work is the shader/blit convention.
-                TextureHandle black = renderGraph.CreateTexture(activeColor, "RRS_DebugBlack", true);
-                RGUtils.AddCopyPass(renderGraph, black, activeColor, "RRS Debug Black", false, "", 0);
-                if (!RumbleReShadedMod.passDiagLogged)
-                {
-                    RumbleReShadedMod.passDiagLogged = true;
-                    Logger.Debug("[diag] RRSRenderPass.RecordRenderGraph ran (DebugSolidFill): copied black over activeColorTexture.");
-                }
-                return;
-            }
-
             // A sampleable copy of the live image: same descriptor as the active
             // colour but forced to single-sample (you cannot SAMPLE an MSAA texture,
             // and VR commonly runs MSAA) and colour-only.
@@ -219,12 +203,6 @@ namespace RumbleReShaded
 
         private static bool hooked;
         private static RRSRenderPass pass;
-        private static RRSMaskPass maskPass;
-        private static RRSSandwichSavePass sandwichSave;
-        private static RRSSandwichRestorePass sandwichRestore;
-        private static RRSSandwichMaskPass sandwichMask;
-        // maskDebugMode (the Stage 3 RenderGraph ladder slider) was removed 2026-08-06 along with
-        // its menu entry — the route it drove is hard-disabled and the field had no readers left.
         internal static bool passDiagLogged;
         private static bool enqueueDiagLogged;
 
@@ -310,11 +288,6 @@ namespace RumbleReShaded
         // button so it has somewhere sensible to fire at.
         private static Vector3 lastCameraPos;
 
-        // TEMP DIAGNOSTIC: see RRSRenderPass.RecordRenderGraph. While true the pass
-        // copies a black texture over the camera colour instead of running packs, to
-        // prove the injection reaches the HMD. Set false for the real effect.
-        public const bool DebugSolidFill = false;
-
         // ⚠ TEMPORARY TEST SCAFFOLD (2026-09-04) — MUST be false in any published build.
         // While true, the pack pass throws on its first recording, at the same point in the
         // frame the real crash reached. It exists because the self-disable above cannot
@@ -341,29 +314,6 @@ namespace RumbleReShaded
             // Register the injected Il2Cpp type before it is ever instantiated/used.
             try { ClassInjector.RegisterTypeInIl2Cpp<RRSRenderPass>(); }
             catch (Exception e) { Logger.Warning("RRSRenderPass already registered or registration failed: " + e.Message); }
-
-            // Stage 3 mask pass + its RenderGraph pass data. BOTH must be injected: RenderGraph
-            // allocates the pass data on the Il2Cpp side, so an unregistered type would fail at
-            // record time rather than here.
-            try
-            {
-                ClassInjector.RegisterTypeInIl2Cpp<RRSMaskPass>();
-                ClassInjector.RegisterTypeInIl2Cpp<RRSMaskPass.MaskPassData>();
-            }
-            catch (Exception e) { Logger.Warning("RRSMaskPass registration failed: " + e.Message); }
-
-            // Mask sandwich step 1 (see MaskSandwich.cs). Two passes, not one, because they sit
-            // either side of CategoryRecolor's RenderObjectsPasses and so need different
-            // renderPassEvents. No pass data type here — unlike RRSMaskPass these record nothing
-            // but blits, which is exactly why the route is considered safe.
-            try
-            {
-                ClassInjector.RegisterTypeInIl2Cpp<RRSSandwichSavePass>();
-                ClassInjector.RegisterTypeInIl2Cpp<RRSSandwichRestorePass>();
-                // Step 3's third slice, added 2026-08-27.
-                ClassInjector.RegisterTypeInIl2Cpp<RRSSandwichMaskPass>();
-            }
-            catch (Exception e) { Logger.Warning("Mask sandwich pass registration failed: " + e.Message); }
 
             // Open the API here, NOT after the packs are scanned. Consumer mods register
             // their own packs from their OnInitializeMelon, which MelonLoader may run
@@ -405,80 +355,27 @@ namespace RumbleReShaded
                     foreach (ShaderPack pack in packs) pack.Unload();
                     Logger.Info("Shader packs will reload.");
                 }));
-            // ── MENU PARKED 2026-08-06 (Peter) — entries removed, CODE UNTOUCHED ─────────────
+            // ── MENU PARKED 2026-08-06 (Peter) — entries removed, implementation kept ──────
             //
-            // The main category had grown to ~23 entries, almost all of it dev scaffolding for
-            // work that is either finished or blocked. While the mask sandwich ladder is the
-            // only live experiment, the menu shows only what that needs. Peter's standing rule
-            // applies to our own menu too, not just to pack authors: "too many options / things
-            // to learn is gonna hurt us in the long run."
+            // The main category had grown to ~23 entries, almost all of it dev scaffolding.
+            // Peter's standing rule applies to our own menu too, not just to pack authors:
+            // "too many options / things to learn is gonna hurt us in the long run." What a
+            // downloader sees now is exactly Enabled, Debug logging and Reload packs —
+            // everything else in the menu is a pack they installed.
             //
-            // NOTHING WAS DELETED except the CreateEntry/CreateButtonEntry calls. Every
-            // implementation below is intact, compiles, and is one line from coming back:
+            // One implementation is still here, one line from coming back:
             //
-            //   Fire test event      -> Api.RRS.Fire("rrs.test.ping", lastCameraPos, 8f, 1f, 2f)
-            //                           Trigger API is VR-verified (2026-08-04); the button had
-            //                           done its job. See docs/TRIGGER_API.md §6.
-            //   Dump scene renderers -> SceneSurvey.Run()
-            //                           Survey is finished and written up in the plan §10.
-            //   Tag renderer cats    -> CategoryTagger.Retag()
-            //   Clear renderer cats  -> CategoryTagger.ClearAll()
-            //                           ⚠ RE-ADD BOTH BEFORE SANDWICH STEP 2. The category draws
-            //                           need tagged renderers; with no tags step 2 draws nothing
-            //                           and reads as a false pass. Deliberately NOT made
-            //                           automatic on scene load — that would add a moving part
-            //                           to a test whose entire value is "nothing changed."
-            //   Category recolour    -> CategoryRecolor.BuildSettings(mainCat)
-            //                           16 entries (4 categories x toggle+R+G+B) — two thirds of
-            //                           the old menu on its own. VR-verified for map and players
-            //                           on 2026-08-05; re-add that one call to get it all back.
-            //   Category mask debug  -> gone for good in practice: the RenderGraph route it drove
-            //                           is hard-disabled behind RRSMaskPass.RenderGraphRouteEnabled
-            //                           = false after it took the whole PC down (plan §11). Its
-            //                           own description already read "has no effect".
+            //   Fire test event -> Api.RRS.Fire("rrs.test.ping", lastCameraPos, 8f, 1f, 2f)
+            //                      The trigger API is VR-verified (2026-08-04), so the button
+            //                      had done its job. See docs/TRIGGER_API.md §6.
             //
-            // Stale keys left in UserData/MelonPreferences.cfg are harmless — an unregistered
+            // The rest of what this block used to list — the scene survey, the category tagger
+            // and recolour, the mask sandwich ladder and the RenderGraph mask route — was
+            // deleted along with the code it drove, since none of it could be reached from a
+            // shipped build. It is in the history if any of it is ever wanted back.
+            //
+            // Stale keys left in UserData/MelonPreferences.cfg are harmless: an unregistered
             // entry is simply never read, and re-adding a call picks the saved value back up.
-
-            // Belt-and-braces on the dead RenderGraph route: the enqueue is gated by
-            // RenderGraphRouteEnabled (false), and the mode it would have read is now pinned at 0
-            // with no way to raise it from the menu.
-            RRSMaskPass.DebugMode = 0;
-
-            // ── MENU PARKED 2026-09-04 (Peter) — SIX SANDWICH ENTRIES + TWO TAGGER BUTTONS ─────
-            //
-            // Same treatment, same reason as the 2026-08-06 block above, applied to the last of
-            // the dev scaffolding ahead of publishing 1.2.0. What a downloader now sees in the
-            // main category is exactly: Enabled, Reload packs. Everything else in the menu is a
-            // pack the user installed.
-            //
-            // Removed here (implementations untouched, one line each to bring back):
-            //
-            //   MaskSandwich.BuildSettings(mainCat)  -> the 0–13 rung ladder, "Rung at next
-            //                                           startup", "Dump render graph (1 frame)",
-            //                                           and the three RenderGraph debug toggles
-            //                                           (culling / merging / compilation caching).
-            //                                           Six entries, all of them instruments for
-            //                                           an experiment that CONCLUDED on
-            //                                           2026-08-27: steps 1–3 passed and the
-            //                                           category mask is live. The ladder's value
-            //                                           now is re-running it after a game update,
-            //                                           which is a dev act, not a player one.
-            //   Tag / Clear renderer categories      -> CategoryTagger.Retag() / ClearAll().
-            //                                           These exist to make the sandwich rungs
-            //                                           readable; with the ladder parked they tag
-            //                                           renderers nothing reads.
-            //
-            // ⚠ RE-ADD ALL THREE TOGETHER, and re-add the taggers BEFORE running any rung ≥10 —
-            // untagged renderers make the category draws match nothing, and the rung then reads
-            // as a FALSE PASS. That warning is why they were un-parked on 2026-08-27; it has not
-            // stopped being true, only stopped being reachable.
-            //
-            // Safe by construction, not by hope: MaskSandwich reads `if (rungSetting == null)
-            // return 0` and every debug flag getter is null-guarded, so with BuildSettings never
-            // called the whole sandwich is inert at rung 0 — which is what it is forced to on
-            // every startup anyway. `_RRSCategoryMask` is therefore NOT published in this build;
-            // nothing samples it yet, and the encoding is explicitly still unsettled.
 
             categories.Add(mainCat);
 
@@ -633,30 +530,6 @@ namespace RumbleReShaded
                 // (e.g. UltraShade's atmospheric fog).
                 pass.ConfigureInput(ScriptableRenderPassInput.Depth);
 
-                // Mask pass runs BEFORE the colour pass so the mask is finished by the time
-                // anything samples it. AfterRenderingOpaques is also where the geometry it wants
-                // to draw has just been rendered, so the culling results are current.
-                maskPass = new RRSMaskPass();
-                maskPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-                maskPass.requiresIntermediateTexture = true;
-
-                // Mask sandwich step 1. requiresIntermediateTexture on BOTH: without it URP may
-                // render straight to the backbuffer, and there would be no activeColorTexture to
-                // copy out of or blit back into.
-                sandwichSave = new RRSSandwichSavePass();
-                sandwichSave.renderPassEvent = RRSSandwichSavePass.Event;
-                sandwichSave.requiresIntermediateTexture = true;
-
-                sandwichRestore = new RRSSandwichRestorePass();
-                sandwichRestore.renderPassEvent = RRSSandwichRestorePass.Event;
-                sandwichRestore.requiresIntermediateTexture = true;
-
-                // Step 3's mask copy. Enqueued only on rungs 12/13 — see MaskSandwich.Enqueue —
-                // but constructed here with the others so injection happens once.
-                sandwichMask = new RRSSandwichMaskPass();
-                sandwichMask.renderPassEvent = RRSSandwichMaskPass.Event;
-                sandwichMask.requiresIntermediateTexture = true;
-
                 RenderPipelineManager.beginCameraRendering += (Il2CppSystem.Action<ScriptableRenderContext, Camera>)OnBeginCameraRendering;
             }
         }
@@ -744,35 +617,7 @@ namespace RumbleReShaded
             EventBuffer.PushGlobals();
             EyeGlobals.Push(cam);
 
-            UniversalAdditionalCameraData maskData = cam.GetComponent<UniversalAdditionalCameraData>();
-            ScriptableRenderer maskRenderer = maskData != null ? maskData.scriptableRenderer : null;
-
-            // ⛔ The Stage 3 RenderGraph debug ladder used to be enqueued here. Its menu slider was
-            // parked on 2026-08-06 (see BuildSettings), and the route it drove is hard-disabled
-            // behind RenderGraphRouteEnabled = false after rung 3 crashed the whole PC on
-            // 2026-08-05 (see RRSMaskPass / plan §11). With no way to raise DebugMode above 0 the
-            // enqueue could never fire, so it is gone rather than sitting here reading as live.
-            // `maskPass` is still constructed and still injected — only the enqueue is removed.
-
-            // Enqueued before the pack early-return: recolouring is independent of shader packs,
-            // and the same mistake in the mask debug made a slider look broken (2026-08-05).
-            // Its menu entries are parked, which leaves `passes` empty and makes this a no-op —
-            // deliberately left in place so re-adding CategoryRecolor.BuildSettings is the single
-            // line that brings the whole feature back.
-            // Sandwich step 2 (rung 10) arms the category draws and pins them to event 302, so
-            // they land between the save at 301 and the restore at 303. MUST run before
-            // CategoryRecolor.Enqueue — that call is what reads the two statics this sets.
-            MaskSandwich.PrepareCategoryDraws();
-
-            if (maskRenderer != null) CategoryRecolor.Enqueue(maskRenderer);
-
-            // Enqueued after the recolour passes but that says nothing about ORDER — URP sorts
-            // its queue by renderPassEvent, and these two deliberately straddle
-            // AfterRenderingOpaques where the recolour passes sit. Also outside the pack
-            // early-return, for the same reason as the two above: it is independent of packs.
-            if (maskRenderer != null) MaskSandwich.Enqueue(maskRenderer, sandwichSave, sandwichRestore, sandwichMask);
-
-            if (!DebugSolidFill && !AnyPackEnabled()) return;
+            if (!AnyPackEnabled()) return;
 
             // Before enqueueing, not inside RecordRenderGraph — reordering the list the
             // graph is about to walk, while it is walking it, is asking for trouble.
