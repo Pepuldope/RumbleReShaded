@@ -1,5 +1,6 @@
 ## Unreleased
 - **Flatscreen** - packs now draw with no headset active (no OpenXR runtime, say), on any base game camera drawing to the screen. In VR nothing changes.
+- **Live link** (off by default) - lets a tool on this PC preview looks in the running game, through `RRS.Override`, and set shader globals as a mod does during play (a beat, a clock), which go back to 0 when it leaves. A new setting turns it on; it listens on this PC only, and your settings are never changed. See `docs/LIVE_LINK.md`.
 
 ## v1.2.0-dev.2
 For mods that drive packs (additive API, `ApiVersion` unchanged):

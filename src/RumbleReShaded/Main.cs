@@ -276,6 +276,10 @@ namespace RumbleReShaded
         // a transient fault is most likely to be gone. Deliberately NOT a per-frame or timer-based
         // retry — that would re-enter the failing path hundreds of times a second and turn one
         // logged fault into a stutter.
+        public override void OnUpdate() => LiveLink.Update();
+
+        public override void OnApplicationQuit() => LiveLink.Stop();
+
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
             if (!RenderFailed || renderFailureCount >= MaxRenderAttempts) return;
@@ -368,6 +372,7 @@ namespace RumbleReShaded
 
             MelonPreferences_Category mainCat = MelonPreferences.CreateCategory("RumbleReShaded", "RumbleReShaded");
             masterEnabled = mainCat.CreateEntry("Enabled", true, "Enabled", "Master switch for all shader packs.");
+            LiveLink.BuildSettings(mainCat);
             // A real button: re-read every pack bundle from disk (handy while authoring).
             // Mod-supplied packs reload too — from their retained bytes rather than from
             // disk (ShaderPack.Unload keeps EmbeddedBundle for exactly this). Pointless for
