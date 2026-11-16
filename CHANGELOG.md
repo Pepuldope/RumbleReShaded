@@ -1,5 +1,7 @@
-## Unreleased
+## v1.2.0-dev.3
 - **Flatscreen** - packs now draw with no headset active (no OpenXR runtime, say), on any base game camera drawing to the screen. In VR nothing changes.
+- **Quieter log** - the diagnostic lines this mod wrote during play are off by default now (a structure hit logged twice a second on its own). A new **Debug logging** setting turns them back on - turn it on before reporting a problem. Warnings and errors are unaffected.
+- **Each eye's position and lens, as shader globals** - `_RRS_eyes`, `_RRS_eyeToWorld0`/`1` and `_RRS_eyeInvProjection0`/`1`, so a pack can build a ray through a pixel from where the eye really is. Without them a pack drawing in the air showed it on the surfaces behind instead in VR, as if both eyes shared one position. See `ShaderCreation/AUTHORING_GUIDE.md`.
 - **Live link** (off by default) - lets a tool on this PC preview looks in the running game, through `RRS.Override`, and set shader globals as a mod does during play (a beat, a clock), which go back to 0 when it leaves. A new setting turns it on; it listens on this PC only, and your settings are never changed. See `docs/LIVE_LINK.md`.
 
 ## v1.2.0-dev.2

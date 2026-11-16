@@ -12,7 +12,8 @@ a new look.
 
 Every effect is applied **after the game finishes drawing the frame**, so it covers
 *everything* you see — the arena, your hands, particles, trails and world-space UI — in
-both eyes, with full VR support.
+both eyes, with full VR support. With no headset active it draws on the flatscreen
+view too, so you can use it (and author packs) without putting a headset on.
 
 ## Requirements
 
@@ -129,6 +130,12 @@ look.Dispose();                 // hands the pack back
 - **`RRS.Fire`** sends a one-shot event packs can `listen` for, and **`RRS.SetGlobal("mymod.charge", v)`**
   a value shaders read as `_RRS_mymod_charge`. Names are always namespaced `modid.name`.
 
+Packs can also be driven from **outside the game**. The optional **live link** — off by
+default, a toggle in the menu — lets a tool on the same PC preview
+looks through `RRS.Override` and set those same globals over a localhost socket, so sliders
+and a timeline can be shown on the real shaders. Nothing it does is saved to the player's
+settings. See **[docs/LIVE_LINK.md](docs/LIVE_LINK.md)**.
+
 ## Troubleshooting
 
 | Symptom | Likely cause |
@@ -137,12 +144,12 @@ look.Dispose();                 // hands the pack back
 | Pack toggles on but nothing changes | The shader output equals the input at current slider values, or the bundle was built wrong — see the authoring guide. |
 | Magenta screen | Shader failed to compile/load — a pack must be built with the exact Unity version the game runs. |
 | Nothing works at all | Make sure **Enabled** is on, and that MelonLoader + UIFramework loaded (`MelonLoader/Latest.log`). |
+| You want to report a problem | Turn on **Debug logging** in the menu, reproduce it, then attach `MelonLoader/Latest.log`. The mod's diagnostic lines are off by default to keep the log quiet, and that setting turns them back on. |
 
 ## Source code
 
-The full mod source is in **[`src/`](src/)** — it's a small, readable project (two C#
-files: the injected URP render pass and the pack loader). Nothing is obfuscated, so anyone
-can read exactly what the mod does.
+The full mod source is in **[`src/`](src/)** — a small, readable project. Nothing is
+obfuscated, so anyone can read exactly what the mod does.
 
 In short: it injects a URP `ScriptableRenderPass` after the frame is fully drawn, copies
 the camera's finished color image, and blits it back through each enabled pack's shader. It
@@ -150,8 +157,15 @@ only ever reads the **already-rendered frame** (plus the standard depth buffer f
 effects) and only changes how *your own* view looks — it touches no physics, no match state,
 and nothing an opponent can observe.
 
+The one part that reaches outside the game is the **live link**, and it does nothing unless
+you switch it on. It then accepts a single connection on `127.0.0.1:47810` — loopback only,
+so nothing is reachable from the network — drives packs through the temporary override API,
+and never writes your settings. See **[docs/LIVE_LINK.md](docs/LIVE_LINK.md)**.
+
 - [`src/RumbleReShaded/Main.cs`](src/RumbleReShaded/Main.cs) — the render pass + UIFramework wiring.
 - [`src/RumbleReShaded/ShaderPack.cs`](src/RumbleReShaded/ShaderPack.cs) — pack discovery, manifest parsing, AssetBundle loading.
+- [`src/RumbleReShaded/LiveLink.cs`](src/RumbleReShaded/LiveLink.cs) — the optional local preview link.
+- [`src/RumbleReShaded/Logger.cs`](src/RumbleReShaded/Logger.cs) — one log path, with the diagnostic lines behind a setting.
 
 Build it with the .NET SDK against a local RUMBLE install (`dotnet build -c Release`); the
 `.csproj` references the game's MelonLoader assemblies via `<GamePath>`.
