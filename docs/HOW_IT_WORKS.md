@@ -52,7 +52,7 @@ var data = cam.GetComponent<UniversalAdditionalCameraData>();
 data.scriptableRenderer.EnqueuePass(pass);
 ```
 
-The camera is filtered to the real stereo view (`stereoEnabled`, no `targetTexture`)
+The camera is filtered to the real view (`stereoEnabled`, or with no headset active any base game camera; no `targetTexture`)
 so we skip preview/RT/UI cameras.
 
 The pass is configured:

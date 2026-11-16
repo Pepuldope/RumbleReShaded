@@ -661,11 +661,35 @@ namespace RumbleReShaded
             }
         }
 
+        // A camera the player looks through: the stereo one, or with no headset active (no OpenXR
+        // runtime, say), any base game camera drawing to the screen. It can't be just MainCamera:
+        // that is 'Headset', and the window may show one drawn over it, as the recording camera
+        // and mods' desktop cameras are. A connected headset's window mirrors the eyes instead.
+        private static bool IsTheView(Camera cam)
+        {
+            if (cam.stereoEnabled) return true;
+            if (UnityEngine.XR.XRSettings.isDeviceActive || cam.cameraType != CameraType.Game) return false;
+            UniversalAdditionalCameraData data = cam.GetComponent<UniversalAdditionalCameraData>();
+            return data != null && data.renderType == CameraRenderType.Base;
+        }
+
+        private static readonly HashSet<string> flatscreenCamerasLogged = new HashSet<string>();
+
+        // Flatscreen is young, so say once per camera what each looks like, for reports of it not working.
+        private static void LogFlatscreenCamera(Camera cam)
+        {
+            if (cam.stereoEnabled || UnityEngine.XR.XRSettings.isDeviceActive || !flatscreenCamerasLogged.Add(cam.name)) return;
+            MelonLogger.Msg($"[diag] Flatscreen camera '{cam.name}': tag={cam.tag}, type={cam.cameraType}, depth={cam.depth}, " +
+                $"targetTexture={cam.targetTexture != null}, isTheView={cam.targetTexture == null && IsTheView(cam)}.");
+        }
+
         private static void BeginCameraRendering(Camera cam)
         {
             // Camera filter first, so the position we remember for the debug button is
             // the VR camera's and not some off-screen render-to-texture camera's.
-            if (cam == null || cam.targetTexture != null || !cam.stereoEnabled) return;
+            if (cam == null) return;
+            LogFlatscreenCamera(cam);
+            if (cam.targetTexture != null || !IsTheView(cam)) return;
             lastCameraPos = cam.transform.position;
 
             if (masterEnabled == null || !masterEnabled.Value) return;
