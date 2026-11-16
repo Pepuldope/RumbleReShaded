@@ -3,7 +3,8 @@
 RumbleShade is the Unity template project for building **shader packs** for RUMBLE.
 You write a fragment shader, build it into an AssetBundle here, drop the output into
 the game, and the [**RumbleReShaded**](../README.md) mod applies it as a
-full-screen post effect on your view — in VR, covering everything including particles.
+full-screen post effect on your view — covering everything including particles, in both
+eyes in VR, or on the flatscreen view when no headset is active.
 
 > In a hurry / not a shader programmer? You can describe the look you want in plain
 > English and have Claude write the shader for you — see
@@ -168,6 +169,64 @@ float dist = LinearEyeDepth(raw, _ZBufferParams);  // meters from camera
 The mod automatically makes `_CameraDepthTexture` available, so this just works.
 See **UltraShade** for a complete fog example.
 
+## Globals a pack can read
+
+Besides `_BlitTexture` and depth, the mod publishes a handful of shader values. Declare
+only the ones you use — an undeclared property is simply never read, and setting one that
+a shader doesn't declare is a silent no-op.
+
+### Where the eyes are
+
+For putting something *in the world* rather than on the screen. Set once per camera,
+before the pass is enqueued, so they are current for the frame being drawn.
+
+| Global | Meaning |
+|---|---|
+| `_RRS_eyes` | `1` once the rest are set (`0` otherwise) — test it before relying on them |
+| `_RRS_eyeToWorld0` / `_RRS_eyeToWorld1` | left / right eye to world; view space looks down `-Z` |
+| `_RRS_eyeInvProjection0` / `_RRS_eyeInvProjection1` | each eye's inverse projection, OpenGL style (*not* flipped for the GPU) |
+
+A ray through the current pixel, starting from where that eye really is:
+
+```hlsl
+float4x4 toWorld = unity_StereoEyeIndex == 0 ? _RRS_eyeToWorld0 : _RRS_eyeToWorld1;
+float4x4 invProj = unity_StereoEyeIndex == 0 ? _RRS_eyeInvProjection0 : _RRS_eyeInvProjection1;
+
+// NDC -> a point on the near plane, in view space
+float3 nearVS  = mul(invProj, float4(input.texcoord * 2 - 1, -1, 1)).xyz;
+float3 originWS = float3(toWorld._m03, toWorld._m13, toWorld._m23);   // the eye itself
+float3 dirWS    = normalize(mul((float3x3)toWorld, nearVS));
+```
+
+Why these exist rather than Unity's own per-eye matrices: a pack drawing sparkles in the
+air showed them on the surfaces *behind* instead in VR, as if both eyes shared one
+position. These are worked out from the camera, so a pack doesn't depend on what the blit
+happens to bind. With no headset, both eyes are the camera's own.
+
+### Events your manifest listens for
+
+`_RRSChannel0`, `_RRSChannel1`, … are **material properties** (not globals), one per name
+in your manifest's `listen` array, in the same order, holding that channel's id. Compare an
+event's channel against these — you never hash a name in HLSL. Declare each one you listen
+for, or events on it do nothing.
+
+The events themselves are globals:
+
+| Global | Contents |
+|---|---|
+| `_RRSEventCount` | how many entries are real; everything past it is stale, never read it |
+| `_RRSEventPos[i]` | `xyz` world position, `w` radius |
+| `_RRSEventData[i]` | `x` age in **seconds**, `y` duration, `z` channel id, `w` strength |
+
+Use `_RRSEventData[i].x` for age, never `_Time` — `_Time` resets and wraps.
+
+### Values a mod publishes
+
+`_RRS_<modid>_<name>` is whatever another mod sets with `RRS.SetGlobal("modid.name", v)` —
+a beat, a charge, a health fraction (a `.` can't appear in a shader property name, so it
+becomes `_`). `0` when nothing is driving it. The live link can set these too, which is how
+a tool on your PC previews what a mod would drive during play.
+
 ## Neighbour taps (blur, sharpen, outlines)
 
 `_BlitTexture_TexelSize` (`xy` = 1/width, 1/height) is **already declared by Blit.hlsl**
@@ -214,7 +273,8 @@ float3 right = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, input.texco
 
 ## Performance
 
-Your shader runs on **every pixel, twice (both eyes), at 90 fps**. Be frugal:
+Your shader runs on **every pixel, at 90 fps** — twice over in VR, once on a flatscreen
+view. Be frugal:
 
 - Gate expensive features so a zeroed slider costs nothing:
   `[branch] if (_Bloom > 0.001) { ...taps... }`
@@ -226,7 +286,10 @@ Your shader runs on **every pixel, twice (both eyes), at 90 fps**. Be frugal:
 aberration, film grain, distortion, depth fog, depth-based outlines.
 
 **Cannot:** true ray tracing (no scene geometry, no DXR, and VR framerate forbids it),
-or anything needing 3D data beyond the color + depth buffers.
+or anything needing 3D data beyond the color + depth buffers. Depth *plus* the eye globals
+do get you a world position per pixel, though, which is enough for world-anchored fog,
+light shafts, or marks that sit in the air — see
+[Globals a pack can read](#globals-a-pack-can-read).
 
 **Stacking:** two packs that both fully re-color the scene won't "blend" — the later
 one wins. The clean pattern is one grading pack + any number of additive overlay packs

@@ -1,3 +1,10 @@
+## v1.2.0-dev.3
+- **Flatscreen** - packs now draw with no headset active (no OpenXR runtime, say), on any base game camera drawing to the screen. In VR nothing changes.
+- **Quieter log** - the diagnostic lines this mod wrote during play are off by default now (a structure hit logged twice a second on its own). A new **Debug logging** setting turns them back on - turn it on before reporting a problem. Warnings and errors are unaffected.
+- **Each eye's position and lens, as shader globals** - `_RRS_eyes`, `_RRS_eyeToWorld0`/`1` and `_RRS_eyeInvProjection0`/`1`, so a pack can build a ray through a pixel from where the eye really is. Without them a pack drawing in the air showed it on the surfaces behind instead in VR, as if both eyes shared one position. See `ShaderCreation/AUTHORING_GUIDE.md`.
+- **Live link** (off by default) - lets a tool on this PC preview looks in the running game, through `RRS.Override`, and set shader globals as a mod does during play (a beat, a clock), which go back to 0 when it leaves. A new setting turns it on; it listens on this PC only, and your settings are never changed. See `docs/LIVE_LINK.md`.
+- **Removed unreachable dev scaffolding** - the mask sandwich ladder, the RenderGraph mask route (hard-disabled since it crashed a PC), the category tagger and recolour, the scene survey and the solid-fill probe: ~2,900 lines no shipped build could reach, because every entry point was parked and every switch pinned off. No behaviour change, and it clears both compiler warnings. All of it is in the git history if it is ever wanted back.
+
 ## v1.2.0-dev.2
 For mods that drive packs (additive API, `ApiVersion` unchanged):
 - **`RRS.Override(modId, pack)`** - take temporary control of a pack's on/off and sliders without touching the player's settings. Returns a `PackOverride`: set `Enabled`, `Set(parameter, value)` by label or shader property, blend with `Weight` (0..1, so a fade is just animating it), and `Dispose()` to hand the pack back. Nothing is saved, so the menu keeps showing the player's own choices and a crash can't leave someone else's look in their config. Overrides from several mods stack in creation order.

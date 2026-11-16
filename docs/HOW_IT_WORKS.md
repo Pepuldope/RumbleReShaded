@@ -52,7 +52,7 @@ var data = cam.GetComponent<UniversalAdditionalCameraData>();
 data.scriptableRenderer.EnqueuePass(pass);
 ```
 
-The camera is filtered to the real stereo view (`stereoEnabled`, no `targetTexture`)
+The camera is filtered to the real view (`stereoEnabled`, or with no headset active any base game camera; no `targetTexture`)
 so we skip preview/RT/UI cameras.
 
 The pass is configured:
@@ -131,6 +131,34 @@ The RumbleShade template's example shaders are the canonical reference for this;
   updates the look live — no save callback needed. The **Reload packs** button unloads
   every bundle so they re-read from disk on the next frame — a live edit loop without
   restarting the game.
+
+## What the mod publishes to shaders
+
+`EventBuffer.PushGlobals()` and `EyeGlobals.Push(cam)` both run once per camera in
+`beginCameraRendering`, **before** the pass is enqueued. Globals set while the render graph
+is being recorded are order-dependent, so they go up front where the ordering is knowable.
+
+- **Events** — `_RRSEventCount`, `_RRSEventPos[]` (`xyz` position, `w` radius) and
+  `_RRSEventData[]` (age in seconds, duration, channel id, strength). The *full* array is
+  pushed every time: Unity locks a global array's length on first set, so pushing a shorter
+  one later silently truncates. Age is computed on the CPU because `_Time` resets and wraps.
+- **Eyes** — `_RRS_eyes`, `_RRS_eyeToWorld0`/`1` and `_RRS_eyeInvProjection0`/`1`, worked
+  out from the camera rather than from whatever the blit happens to bind, so a pack can
+  build a ray through a pixel from the eye's real position. A pack drawing in the air
+  needed this: without it both eyes behaved as one.
+- **Mod values** — `RRS.SetGlobal("modid.name", v)` is published as `_RRS_modid_name`.
+
+A pack's `listen` channels are the exception: those are set on the pack's own **material**
+(`_RRSChannel0`, `_RRSChannel1`, …), not as globals.
+
+## Logging
+
+Every line goes through `Logger`, which holds this mod's own `MelonLogger.Instance`, so the
+`[RumbleReShaded]` prefix on each line is stated rather than inferred from the calling
+assembly the way the static `MelonLogger` leaves it. The diagnostic lines —
+`[diag]`, `[probe]`, `[event]` — are `Debug` level and hidden unless the **Debug logging**
+setting is on, since several of them fire during normal play. Nothing is deleted, only
+quiet; the level is re-read each frame, so the toggle works without a restart.
 
 ## Why AssetBundles (and the exact Unity version)
 

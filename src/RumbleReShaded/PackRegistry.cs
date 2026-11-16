@@ -43,12 +43,12 @@ namespace RumbleReShaded
 
             if (string.IsNullOrEmpty(manifestJson))
             {
-                MelonLogger.Warning($"RumbleReShaded: '{modId}' registered a pack with an empty manifest — ignored.");
+                Logger.Warning($"'{modId}' registered a pack with an empty manifest — ignored.");
                 return false;
             }
             if (bundle == null || bundle.Length == 0)
             {
-                MelonLogger.Warning($"RumbleReShaded: '{modId}' registered a pack with no bundle bytes — ignored. " +
+                Logger.Warning($"'{modId}' registered a pack with no bundle bytes — ignored. " +
                     "If you are loading it from an embedded resource, check the resource name " +
                     "(Assembly.GetManifestResourceNames() lists what actually got compiled in).");
                 return false;
@@ -58,7 +58,7 @@ namespace RumbleReShaded
             {
                 if (closed)
                 {
-                    MelonLogger.Warning($"RumbleReShaded: '{modId}' tried to register a shader pack too late — ignored. " +
+                    Logger.Warning($"'{modId}' tried to register a shader pack too late — ignored. " +
                         "Registration closes once the settings menu is built. Call RRS.RegisterPack from your mod's " +
                         "OnInitializeMelon (not OnLateInitializeMelon, not from a scene load).");
                     return false;
@@ -72,14 +72,14 @@ namespace RumbleReShaded
             {
                 if (pending.Exists(p => p.Id == pack.Id))
                 {
-                    MelonLogger.Warning($"RumbleReShaded: '{modId}' registered two packs named '{pack.Name}' — " +
+                    Logger.Warning($"'{modId}' registered two packs named '{pack.Name}' — " +
                         "keeping the first. Pack names must be unique within a mod.");
                     return false;
                 }
                 pending.Add(pack);
             }
 
-            MelonLogger.Msg($"Shader pack '{pack.Name}' registered by '{modId}' ({bundle.Length / 1024} KB, in memory).");
+            Logger.Info($"Shader pack '{pack.Name}' registered by '{modId}' ({bundle.Length / 1024} KB, in memory).");
             return true;
         }
 
@@ -91,7 +91,7 @@ namespace RumbleReShaded
         {
             if (asm == null)
             {
-                MelonLogger.Warning($"RumbleReShaded: '{modId}' passed a null assembly to RegisterPack — ignored.");
+                Logger.Warning($"'{modId}' passed a null assembly to RegisterPack — ignored.");
                 return false;
             }
 
@@ -124,14 +124,14 @@ namespace RumbleReShaded
 
             if (matches == 0)
             {
-                MelonLogger.Warning($"RumbleReShaded: '{modId}' has no embedded {what} resource matching " +
+                Logger.Warning($"'{modId}' has no embedded {what} resource matching " +
                     $"'{nameOrSuffix}'. Embedded resources in that DLL: " +
                     (all.Length == 0 ? "(none — is Build Action set to EmbeddedResource?)" : string.Join(", ", all)));
                 return null;
             }
             if (matches > 1)
             {
-                MelonLogger.Warning($"RumbleReShaded: '{modId}' has {matches} embedded resources ending in " +
+                Logger.Warning($"'{modId}' has {matches} embedded resources ending in " +
                     $"'{nameOrSuffix}' — ambiguous, ignored. Pass the full resource name instead.");
                 return null;
             }
@@ -146,7 +146,7 @@ namespace RumbleReShaded
             }
             catch (Exception e)
             {
-                MelonLogger.Warning($"RumbleReShaded: '{modId}' — failed to read embedded {what} '{match}': {e.Message}");
+                Logger.Warning($"'{modId}' — failed to read embedded {what} '{match}': {e.Message}");
                 return null;
             }
         }
@@ -171,7 +171,7 @@ namespace RumbleReShaded
         {
             if (string.IsNullOrEmpty(modId))
             {
-                MelonLogger.Warning("RumbleReShaded: RegisterPack called with an empty mod id — ignored. " +
+                Logger.Warning("RegisterPack called with an empty mod id — ignored. " +
                     "Pass a short stable id for your mod (e.g. \"smudgemod\").");
                 return false;
             }
@@ -179,14 +179,14 @@ namespace RumbleReShaded
             foreach (char c in modId)
             {
                 if (char.IsLetterOrDigit(c) || c == '_' || c == '-') continue;
-                MelonLogger.Warning($"RumbleReShaded: mod id '{modId}' contains '{c}' — ignored. " +
+                Logger.Warning($"mod id '{modId}' contains '{c}' — ignored. " +
                     "Use letters, digits, '_' or '-' only (it becomes part of a settings category id).");
                 return false;
             }
 
             if (modId.StartsWith("rrs", StringComparison.OrdinalIgnoreCase) && modId.Length == 3)
             {
-                MelonLogger.Warning("RumbleReShaded: mod id 'rrs' is reserved for built-in packs — ignored.");
+                Logger.Warning("mod id 'rrs' is reserved for built-in packs — ignored.");
                 return false;
             }
 

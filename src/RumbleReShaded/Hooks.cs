@@ -88,14 +88,14 @@ namespace RumbleReShaded
                 if (other == null) return;
 
                 int layer = other.layer;
-                MelonLogger.Msg($"[probe] structure hit '{other.name}' " +
+                Logger.Debug($"[probe] structure hit '{other.name}' " +
                     $"layer {layer} ('{LayerMask.LayerToName(layer)}'), " +
                     $"vel.y {velocityY:F1}, speed {speed:F1} m/s.");
             }
             catch (Exception e)
             {
                 probeFailed = true;
-                MelonLogger.Warning($"RumbleReShaded: collision probe unavailable " +
+                Logger.Warning($"collision probe unavailable " +
                     $"({e.GetType().Name}: {e.Message}) — Collision.gameObject is stripped in this " +
                     "build, so the floor-vs-player filter needs a different source. " +
                     "Events are unaffected.");
@@ -115,7 +115,7 @@ namespace RumbleReShaded
             // all MaxEvents slots occupied, events are evicted before a frame renders
             // them, which looks exactly like "the channel is broken". Known to happen on
             // scene load — ~89 structures settle at once in the Gym.
-            MelonLogger.Msg($"[event] {hook}: structure at {pos}, speed {speed:F1} m/s " +
+            Logger.Debug($"[event] {hook}: structure at {pos}, speed {speed:F1} m/s " +
                 $"-> strength {strength:F2}, {EventBuffer.LiveCount}/{EventBuffer.MaxEvents} slots live.");
         }
 
@@ -301,7 +301,7 @@ namespace RumbleReShaded
             // Type and stack included, not just Message: the first version of this
             // logged "Method unstripping failed" with no indication of WHICH member
             // failed, which cost a round trip to work out (2026-08-04).
-            MelonLogger.Warning($"RumbleReShaded: built-in trigger hook '{where}' threw and will be " +
+            Logger.Warning($"built-in trigger hook '{where}' threw and will be " +
                 $"reported only once: {e.GetType().Name}: {e.Message}\n{e.StackTrace}\n" +
                 "Events from it may be missing; the rest of the mod is unaffected.");
         }

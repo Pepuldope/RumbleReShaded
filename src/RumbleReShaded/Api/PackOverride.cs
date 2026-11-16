@@ -67,7 +67,7 @@ namespace RumbleReShaded.Api
             if (found == null)
             {
                 EventBuffer.WarnOnce($"override:{PackId}:{parameter}",
-                    $"RumbleReShaded: '{ModId}' tried to override '{parameter}' on pack '{PackId}', which has no such parameter" +
+                    $"'{ModId}' tried to override '{parameter}' on pack '{PackId}', which has no such parameter" +
                     (pack == null ? " (the pack is not loaded)." : $". It has: {string.Join(", ", pack.Parameters.ConvertAll(p => p.Label))}."));
                 return false;
             }
@@ -90,7 +90,7 @@ namespace RumbleReShaded.Api
             if (!Active) return;
             Active = false;
             PackOverrides.Remove(this);
-            MelonLogger.Msg($"RumbleReShaded: '{ModId}' released its override of pack '{PackId}'.");
+            Logger.Info($"'{ModId}' released its override of pack '{PackId}'.");
         }
 
         internal bool TryGetValue(string property, out float value) => values.TryGetValue(property, out value);

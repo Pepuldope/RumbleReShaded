@@ -122,7 +122,7 @@ namespace RumbleReShaded
 
         public static void PlayNotImplemented(string effectId)
         {
-            WarnOnce("play:" + effectId, $"RumbleReShaded: RRS.Play(\"{effectId}\") ignored — no built-in " +
+            WarnOnce("play:" + effectId, $"RRS.Play(\"{effectId}\") ignored — no built-in " +
                 "effects ship in this build yet. Check RRS.AvailableEffects (currently empty) before calling.");
         }
 
@@ -169,7 +169,7 @@ namespace RumbleReShaded
             if (!pushedOnce)
             {
                 pushedOnce = true;
-                MelonLogger.Msg($"[diag] Event globals pushed for the first time ({MaxEvents} slots, {count} live).");
+                Logger.Debug($"[diag] Event globals pushed for the first time ({MaxEvents} slots, {count} live).");
             }
         }
 
@@ -207,7 +207,7 @@ namespace RumbleReShaded
         {
             if (string.IsNullOrEmpty(name))
             {
-                WarnOnce("<empty>", $"RumbleReShaded: empty {what} ignored.");
+                WarnOnce("<empty>", $"empty {what} ignored.");
                 return false;
             }
 
@@ -215,7 +215,7 @@ namespace RumbleReShaded
             // Must look like "modid.name" — a dot with something on both sides.
             if (dot <= 0 || dot >= name.Length - 1)
             {
-                WarnOnce(name, $"RumbleReShaded: {what} '{name}' is not namespaced and was ignored. " +
+                WarnOnce(name, $"{what} '{name}' is not namespaced and was ignored. " +
                     "Use \"modid.name\" (e.g. \"mymod.hit\") so two mods can't collide. 'rrs.*' is reserved.");
                 return false;
             }
@@ -231,7 +231,7 @@ namespace RumbleReShaded
             {
                 if (!seenChannels.Add(channel)) return;
             }
-            MelonLogger.Msg($"[event] first '{channel}' fired at {worldPos} (channel id {channelId}). " +
+            Logger.Debug($"[event] first '{channel}' fired at {worldPos} (channel id {channelId}). " +
                 "A pack reacts to it only if its manifest lists this exact name in \"listen\".");
         }
 
@@ -241,7 +241,7 @@ namespace RumbleReShaded
             {
                 if (!warned.Add(key)) return;
             }
-            MelonLogger.Warning(message);
+            Logger.Warning(message);
         }
     }
 }
