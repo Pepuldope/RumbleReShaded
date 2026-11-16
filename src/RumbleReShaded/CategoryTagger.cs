@@ -72,7 +72,7 @@ namespace RumbleReShaded
             // Logged BEFORE the walk, not just after. Scanning every renderer in the scene takes
             // long enough to look like a dead button — Peter pressed it repeatedly on 2026-08-05
             // thinking it had not registered.
-            MelonLogger.Msg("Category tagging: scanning scene…");
+            Logger.Info("Category tagging: scanning scene…");
 
             Renderer[] all;
             try
@@ -81,7 +81,7 @@ namespace RumbleReShaded
             }
             catch (Exception e)
             {
-                MelonLogger.Error($"Category tagging failed to enumerate renderers: {e.GetType().Name}: {e.Message}");
+                Logger.Error($"Category tagging failed to enumerate renderers: {e.GetType().Name}: {e.Message}");
                 return;
             }
 
@@ -128,7 +128,7 @@ namespace RumbleReShaded
                 breakdown.Append($"{name} {n}, ");
             }
 
-            MelonLogger.Msg($"Category tagging: {tagged} renderer(s) tagged ({breakdown}untagged {skipped}" +
+            Logger.Info($"Category tagging: {tagged} renderer(s) tagged ({breakdown}untagged {skipped}" +
                 (failed > 0 ? $", {failed} unreadable" : "") + $") out of {all.Length} scanned.");
         }
 
@@ -152,7 +152,7 @@ namespace RumbleReShaded
                 }
                 catch { }
             }
-            MelonLogger.Msg($"Category tagging cleared from {cleared} renderer(s).");
+            Logger.Info($"Category tagging cleared from {cleared} renderer(s).");
         }
 
         // ---------------------------------------------------------------------------------
@@ -227,7 +227,7 @@ namespace RumbleReShaded
                 if (!warnedNoAccess)
                 {
                     warnedNoAccess = true;
-                    MelonLogger.Warning($"RumbleReShaded: Renderer.renderingLayerMask is not writable in this " +
+                    Logger.Warning($"Renderer.renderingLayerMask is not writable in this " +
                         $"build ({e.GetType().Name}) — category masking cannot work. This was probed OK on " +
                         "2026-08-05, so suspect a game update.");
                 }

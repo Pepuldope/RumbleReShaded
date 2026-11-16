@@ -42,12 +42,12 @@ namespace RumbleReShaded
 
         public static void Run()
         {
-            if (running) { MelonLogger.Warning("Scene survey already running."); return; }
+            if (running) { Logger.Warning("Scene survey already running."); return; }
             running = true;
             try { Survey(); }
             catch (Exception e)
             {
-                MelonLogger.Error($"Scene survey failed: {e.GetType().Name}: {e.Message}\n{e.StackTrace}");
+                Logger.Error($"Scene survey failed: {e.GetType().Name}: {e.Message}\n{e.StackTrace}");
             }
             finally { running = false; }
         }
@@ -268,7 +268,7 @@ namespace RumbleReShaded
             Directory.CreateDirectory(dir);
             string file = Path.Combine(dir, $"scene-survey-{now:yyyyMMdd-HHmmss}.txt");
             File.WriteAllText(file, sb.ToString());
-            MelonLogger.Msg($"Scene survey written to {file}");
+            Logger.Info($"Scene survey written to {file}");
         }
 
         private static string HierarchyPath(GameObject go)

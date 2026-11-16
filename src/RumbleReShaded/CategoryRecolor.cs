@@ -152,7 +152,7 @@ namespace RumbleReShaded
             AddDebug(CategoryTagger.Structures, "Structures", 1f, 1f, 1f);   // white
             AddDebug(CategoryTagger.Effects, "Effects", 1f, 0f, 1f, RenderQueueType.Transparent);
 
-            MelonLogger.Msg($"[diag] Category recolour: built {passes.Count} menu-less category " +
+            Logger.Debug($"[diag] Category recolour: built {passes.Count} menu-less category " +
                 $"passes for sandwich step 2, at event {(int)PassEvent}.");
         }
 
@@ -194,7 +194,7 @@ namespace RumbleReShaded
             catch (Exception e)
             {
                 failed = true;
-                MelonLogger.Error($"Category recolour failed and is now disabled for this session: " +
+                Logger.Error($"Category recolour failed and is now disabled for this session: " +
                     $"{e.GetType().Name}: {e.Message}\n{e.StackTrace}");
             }
         }
@@ -206,7 +206,7 @@ namespace RumbleReShaded
             Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
             if (shader == null)
             {
-                MelonLogger.Warning("Category recolour: 'Universal Render Pipeline/Unlit' not found at runtime. " +
+                Logger.Warning("Category recolour: 'Universal Render Pipeline/Unlit' not found at runtime. " +
                     "The 2026-08-05 scene survey saw 57 renderers using it, so this is unexpected — a game " +
                     "update may have stripped it.");
                 failed = true;
@@ -248,7 +248,7 @@ namespace RumbleReShaded
                 ? RenderQueueRange.transparent : RenderQueueRange.opaque;
             cp.Pass.m_FilteringSettings = fs;
 
-            MelonLogger.Msg($"Category recolour: '{cp.Name}' pass built (renderingLayerMask bit {cp.Bit}).");
+            Logger.Debug($"Category recolour: '{cp.Name}' pass built (renderingLayerMask bit {cp.Bit}).");
             return true;
         }
     }

@@ -142,7 +142,7 @@ namespace RumbleReShaded
             try { json = File.ReadAllText(manifestPath); }
             catch (Exception e)
             {
-                MelonLogger.Warning($"Failed to read shader pack manifest in '{folder}': {e.Message}");
+                Logger.Warning($"Failed to read shader pack manifest in '{folder}': {e.Message}");
                 return null;
             }
 
@@ -192,14 +192,14 @@ namespace RumbleReShaded
                 if (pack.Passes < 1) pack.Passes = 1;
                 if (pack.Passes > MaxPasses)
                 {
-                    MelonLogger.Warning($"Shader pack '{pack.Name}': \"passes\": {pack.Passes} exceeds the " +
+                    Logger.Warning($"Shader pack '{pack.Name}': \"passes\": {pack.Passes} exceeds the " +
                         $"limit of {MaxPasses} — clamped. Each pass is a full-screen blit per eye.");
                     pack.Passes = MaxPasses;
                 }
 
                 if (pack.MaterialName == null || (requireBundleFile && pack.BundleFile == null))
                 {
-                    MelonLogger.Warning($"Shader pack '{pack.Name}' ({sourceLabel}): manifest must define " +
+                    Logger.Warning($"Shader pack '{pack.Name}' ({sourceLabel}): manifest must define " +
                         (requireBundleFile ? "\"bundle\" and \"material\"." : "\"material\"."));
                     return null;
                 }
@@ -236,7 +236,7 @@ namespace RumbleReShaded
             }
             catch (Exception e)
             {
-                MelonLogger.Warning($"Failed to read shader pack manifest ({sourceLabel}): {e.Message}");
+                Logger.Warning($"Failed to read shader pack manifest ({sourceLabel}): {e.Message}");
                 return null;
             }
         }
@@ -281,7 +281,7 @@ namespace RumbleReShaded
                 bundlePath = Path.Combine(Folder, BundleFile);
                 if (!File.Exists(bundlePath))
                 {
-                    MelonLogger.Warning($"Shader pack '{Name}': bundle file not found: {bundlePath}");
+                    Logger.Warning($"Shader pack '{Name}': bundle file not found: {bundlePath}");
                     LoadFailed = true;
                     return false;
                 }
@@ -297,7 +297,7 @@ namespace RumbleReShaded
                     try { Bundle = AssetBundle.LoadFromMemory(EmbeddedBundle); }
                     catch (Exception e)
                     {
-                        MelonLogger.Warning($"Shader pack '{Name}': LoadFromMemory threw: {e.Message}");
+                        Logger.Warning($"Shader pack '{Name}': LoadFromMemory threw: {e.Message}");
                         Bundle = null;
                     }
                     if (Bundle == null)
@@ -308,7 +308,7 @@ namespace RumbleReShaded
                     try { Bundle = AssetBundle.LoadFromFile(bundlePath); }
                     catch (Exception e)
                     {
-                        MelonLogger.Warning($"Shader pack '{Name}': LoadFromFile threw: {e.Message}");
+                        Logger.Warning($"Shader pack '{Name}': LoadFromFile threw: {e.Message}");
                         Bundle = null;
                     }
                     if (Bundle == null)
@@ -317,7 +317,7 @@ namespace RumbleReShaded
 
                 if (Bundle == null)
                 {
-                    MelonLogger.Warning($"Shader pack '{Name}' ({SourceLabel}): Unity refused the bundle. This game runs Unity " +
+                    Logger.Warning($"Shader pack '{Name}' ({SourceLabel}): Unity refused the bundle. This game runs Unity " +
                         $"{Application.unityVersion} — the pack must be built with that exact editor version " +
                         "(AssetBundles are not compatible across Unity's 2025 security-format change). " +
                         "Other causes: LZMA compression (rebuild with the template, which uses LZ4), or two packs sharing the same name." +
@@ -328,22 +328,22 @@ namespace RumbleReShaded
 
                 if (!TakeMaterialFromBundle())
                 {
-                    MelonLogger.Warning($"Shader pack '{Name}': material '{MaterialName}' not found in bundle.");
+                    Logger.Warning($"Shader pack '{Name}': material '{MaterialName}' not found in bundle.");
                     Unload();
                     LoadFailed = true;
                     return false;
                 }
 
                 if (Material.shader == null || !Material.shader.isSupported)
-                    MelonLogger.Warning($"Shader pack '{Name}': shader reports unsupported — it may render magenta. Rebuild the pack with Unity {Application.unityVersion}.");
+                    Logger.Warning($"Shader pack '{Name}': shader reports unsupported — it may render magenta. Rebuild the pack with Unity {Application.unityVersion}.");
 
-                MelonLogger.Msg($"Shader pack '{Name}' loaded (queue {EffectiveQueue}, {SourceLabel}).");
+                Logger.Info($"Shader pack '{Name}' loaded (queue {EffectiveQueue}, {SourceLabel}).");
                 LogChannelBinding();
                 return true;
             }
             catch (Exception e)
             {
-                MelonLogger.Warning($"Shader pack '{Name}': load failed: {e.Message}");
+                Logger.Warning($"Shader pack '{Name}': load failed: {e.Message}");
                 Unload();
                 LoadFailed = true;
                 return false;
@@ -374,7 +374,7 @@ namespace RumbleReShaded
             }
             catch (Exception e)
             {
-                MelonLogger.Warning("Stream bundle load failed: " + e.Message);
+                Logger.Warning("Stream bundle load failed: " + e.Message);
                 return null;
             }
         }
@@ -414,11 +414,11 @@ namespace RumbleReShaded
 
                 if (declared)
                 {
-                    MelonLogger.Msg($"Shader pack '{Name}': {property} = '{Listen[i]}' (id {id}).");
+                    Logger.Debug($"Shader pack '{Name}': {property} = '{Listen[i]}' (id {id}).");
                 }
                 else
                 {
-                    MelonLogger.Warning($"Shader pack '{Name}': manifest listens to '{Listen[i]}' but the " +
+                    Logger.Warning($"Shader pack '{Name}': manifest listens to '{Listen[i]}' but the " +
                         $"shader does not declare '{property}' — events on that channel will do NOTHING. " +
                         "Add the property to the shader and REBUILD the bundle (a manifest-only change " +
                         "is not enough).");

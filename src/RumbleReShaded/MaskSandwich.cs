@@ -548,7 +548,7 @@ namespace RumbleReShaded
                     if (requested == 0) return 0;
 
                     lockedRung = requested;
-                    MelonLogger.Msg($"[diag] Mask sandwich: rung {lockedRung} is now LOCKED for " +
+                    Logger.Debug($"[diag] Mask sandwich: rung {lockedRung} is now LOCKED for " +
                         "this session. To test a different rung, RESTART THE GAME — switching " +
                         "rungs in-session produces results that look real and are not.");
                     return lockedRung;
@@ -562,7 +562,7 @@ namespace RumbleReShaded
                     if (lastRefusedRung != requested)
                     {
                         lastRefusedRung = requested;
-                        MelonLogger.Warning($"Mask sandwich: REFUSED rung {requested} — this " +
+                        Logger.Warning($"Mask sandwich: REFUSED rung {requested} — this " +
                             $"session is locked to rung {lockedRung}. Restart the game to test " +
                             $"another rung. Switching in-session is what made rung {lockedRung} " +
                             "read clean once and black afterwards with nothing else changed.");
@@ -702,7 +702,7 @@ namespace RumbleReShaded
                 }
                 catch (Exception e)
                 {
-                    MelonLogger.Warning("Mask sandwich: could not clear the startup arming " +
+                    Logger.Warning("Mask sandwich: could not clear the startup arming " +
                         $"({e.GetType().Name}: {e.Message}). Set 'Rung at next startup' back to 0 " +
                         "by hand, or this rung will run again next launch.");
                 }
@@ -710,7 +710,7 @@ namespace RumbleReShaded
                 lockedRung = armed;
                 rungSetting.Value = armed;
 
-                MelonLogger.Msg($"[diag] Mask sandwich: rung {armed} ARMED AT STARTUP and locked " +
+                Logger.Debug($"[diag] Mask sandwich: rung {armed} ARMED AT STARTUP and locked " +
                     "for this session. The arming has been cleared — the next launch is rung 0 " +
                     "unless you arm another one.");
             }
@@ -812,7 +812,7 @@ namespace RumbleReShaded
         {
             if (!GraphDumpEnabled)
             {
-                MelonLogger.Warning("Render graph dump is DISABLED — it crashed the game on " +
+                Logger.Warning("Render graph dump is DISABLED — it crashed the game on " +
                     "2026-08-06 (uninitialised RenderGraphLogger; see MaskSandwich.GraphDumpEnabled). " +
                     "Nothing was armed.");
                 return;
@@ -820,13 +820,13 @@ namespace RumbleReShaded
 
             if (!Enabled)
             {
-                MelonLogger.Warning("Mask sandwich: set the rung slider above 0 first — at rung 0 " +
+                Logger.Warning("Mask sandwich: set the rung slider above 0 first — at rung 0 " +
                     "our passes are never enqueued, so a graph dump would not show them.");
                 return;
             }
 
             dumpRequested = true;
-            MelonLogger.Msg("[diag] Render graph dump armed for the next frame. Output goes to " +
+            Logger.Debug("[diag] Render graph dump armed for the next frame. Output goes to " +
                 "Unity's Player.log (…/AppData/LocalLow/Buckethead Entertainment/RUMBLE/Player.log), " +
                 "NOT the MelonLoader log — RenderGraph logs through Debug.Log.");
         }
@@ -865,7 +865,7 @@ namespace RumbleReShaded
                 // Never let a diagnostic break rendering — that would be a self-inflicted repeat
                 // of the exact class of failure this whole ladder exists to avoid.
                 dumpRequested = false;
-                MelonLogger.Warning("Mask sandwich: could not reach renderGraph.debugParams " +
+                Logger.Warning("Mask sandwich: could not reach renderGraph.debugParams " +
                     $"({e.GetType().Name}: {e.Message}). Dump and culling toggles are inert.");
             }
         }
@@ -910,7 +910,7 @@ namespace RumbleReShaded
                 {
                     cachingDefault = renderGraph.m_EnableCompilationCaching;
                     cachingDefaultKnown = true;
-                    MelonLogger.Msg("[diag] Mask sandwich: RenderGraph compilation caching was " +
+                    Logger.Debug("[diag] Mask sandwich: RenderGraph compilation caching was " +
                         $"{(cachingDefault ? "ON" : "off")} by default on this build.");
                 }
 
@@ -922,7 +922,7 @@ namespace RumbleReShaded
                 // Latch off rather than retry: this runs twice a frame, and a warning per frame
                 // would bury the very diag lines this ladder exists to read.
                 cachingWriteFailed = true;
-                MelonLogger.Warning("Mask sandwich: could not reach " +
+                Logger.Warning("Mask sandwich: could not reach " +
                     $"RenderGraph.m_EnableCompilationCaching ({e.GetType().Name}: {e.Message}). " +
                     "The caching toggle is inert for this session; the other two are unaffected.");
             }
@@ -990,7 +990,7 @@ namespace RumbleReShaded
             catch (Exception e)
             {
                 failed = true;
-                MelonLogger.Error("Mask sandwich failed and is now disabled for this session: " +
+                Logger.Error("Mask sandwich failed and is now disabled for this session: " +
                     $"{e.GetType().Name}: {e.Message}\n{e.StackTrace}");
             }
         }
@@ -1107,7 +1107,7 @@ namespace RumbleReShaded
                                  : rung == 7 ? $"global published as _RRSSandwichSave (id {SandwichGlobalId})"
                                  : rung == 6 ? "handle stashed for the restore pass"
                                  : "restore will re-import";
-                    MelonLogger.Msg($"[diag] Mask sandwich rung {rung} recording SAVE into the owned target " +
+                    Logger.Debug($"[diag] Mask sandwich rung {rung} recording SAVE into the owned target " +
                         $"({extra}). save@{activeSaveEvent} restore@{activeRestoreEvent}. " +
                         $"RenderGraph debug flags: {DebugFlagState}. " +
                         $"activeColor AT SAVE: {DescribeActive(renderGraph, activeColor)}. " +
@@ -1214,7 +1214,7 @@ namespace RumbleReShaded
 
                 if (!maskRT.Create())
                 {
-                    MelonLogger.Error("Mask sandwich step 3: mask RenderTexture.Create() returned " +
+                    Logger.Error("Mask sandwich step 3: mask RenderTexture.Create() returned " +
                         "false. Step 3 is unavailable; the other rungs are unaffected.");
                     ReleaseMaskTarget();
                     return false;
@@ -1224,7 +1224,7 @@ namespace RumbleReShaded
             }
             catch (Exception e)
             {
-                MelonLogger.Error("Mask sandwich step 3 could not allocate its mask target: " +
+                Logger.Error("Mask sandwich step 3 could not allocate its mask target: " +
                     $"{e.GetType().Name}: {e.Message}");
                 ReleaseMaskTarget();
                 return false;
@@ -1240,7 +1240,7 @@ namespace RumbleReShaded
             // not colour, so an sRGB transfer curve on the way in and out is a real hazard for
             // exact comparisons. It round-trips consistently today, but if a pack ever finds that
             // "R == 1" does not hold exactly, this line is the first suspect.
-            MelonLogger.Msg($"[diag] Mask sandwich step 3 allocated the mask target: " +
+            Logger.Debug($"[diag] Mask sandwich step 3 allocated the mask target: " +
                 $"{width}x{height} slices={slices} {format}, dimension={maskRT.dimension}, msaa=1.");
             return true;
         }
@@ -1248,7 +1248,7 @@ namespace RumbleReShaded
         private static void ReleaseMaskTarget()
         {
             try { if (maskHandle != null) RTHandles.Release(maskHandle); }
-            catch (Exception e) { MelonLogger.Warning($"Mask sandwich: mask RTHandle release failed ({e.GetType().Name})."); }
+            catch (Exception e) { Logger.Warning($"Mask sandwich: mask RTHandle release failed ({e.GetType().Name})."); }
             maskHandle = null;
 
             if (maskRT != null)
@@ -1287,7 +1287,7 @@ namespace RumbleReShaded
 
                 if (!ownedRT.Create())
                 {
-                    MelonLogger.Error("Mask sandwich rung 5: RenderTexture.Create() returned false. " +
+                    Logger.Error("Mask sandwich rung 5: RenderTexture.Create() returned false. " +
                         "Rung 5 is unavailable; the other rungs are unaffected.");
                     ReleaseOwnedTarget();
                     return false;
@@ -1297,7 +1297,7 @@ namespace RumbleReShaded
             }
             catch (Exception e)
             {
-                MelonLogger.Error("Mask sandwich rung 5 could not allocate its owned target: " +
+                Logger.Error("Mask sandwich rung 5 could not allocate its owned target: " +
                     $"{e.GetType().Name}: {e.Message}");
                 ReleaseOwnedTarget();
                 return false;
@@ -1311,7 +1311,7 @@ namespace RumbleReShaded
             // Was hard-coded to "rung 5" and printed "rung 5" during a rung 9 run (2026-08-27).
             // Cosmetic, but a log line that names the wrong rung is exactly the kind of thing that
             // gets believed later, and this file has been burned by that more than once.
-            MelonLogger.Msg($"[diag] Mask sandwich rung {Rung} allocated an owned save target: " +
+            Logger.Debug($"[diag] Mask sandwich rung {Rung} allocated an owned save target: " +
                 $"{width}x{height} slices={slices} {format}, dimension={ownedRT.dimension}, msaa=1.");
             return true;
         }
@@ -1319,13 +1319,13 @@ namespace RumbleReShaded
         private static void ReleaseOwnedTarget()
         {
             try { if (ownedHandle != null) RTHandles.Release(ownedHandle); }
-            catch (Exception e) { MelonLogger.Warning($"Mask sandwich: RTHandle release failed ({e.GetType().Name})."); }
+            catch (Exception e) { Logger.Warning($"Mask sandwich: RTHandle release failed ({e.GetType().Name})."); }
             ownedHandle = null;
 
             if (ownedRT != null)
             {
                 try { ownedRT.Release(); UnityEngine.Object.Destroy(ownedRT); }
-                catch (Exception e) { MelonLogger.Warning($"Mask sandwich: RenderTexture release failed ({e.GetType().Name})."); }
+                catch (Exception e) { Logger.Warning($"Mask sandwich: RenderTexture release failed ({e.GetType().Name})."); }
                 ownedRT = null;
             }
 
@@ -1354,7 +1354,7 @@ namespace RumbleReShaded
             if (!diagLogged)
             {
                 diagLogged = true;
-                MelonLogger.Msg($"[diag] Mask sandwich rung {rung} recording SAVE ('{passName}'). " +
+                Logger.Debug($"[diag] Mask sandwich rung {rung} recording SAVE ('{passName}'). " +
                     $"save@{(int)RRSSandwichSavePass.Event} restore@{(int)RRSSandwichRestorePass.Event} " +
                     $"(AfterRenderingOpaques={(int)RenderPassEvent.AfterRenderingOpaques}); " +
                     $"saved {desc.width}x{desc.height} slices={desc.slices} msaa={desc.msaaSamples}. " +
@@ -1402,7 +1402,7 @@ namespace RumbleReShaded
             if (!maskDiagLogged)
             {
                 maskDiagLogged = true;
-                MelonLogger.Msg($"[diag] Mask sandwich rung {rung} recorded MASK COPY at " +
+                Logger.Debug($"[diag] Mask sandwich rung {rung} recorded MASK COPY at " +
                     $"{(int)Step3MaskEvent} and published it as _RRSCategoryMask " +
                     $"(id {MaskGlobalId}). activeColor AT MASK: {DescribeActive(renderGraph, activeColor)}. " +
                     "Encoding: R=map G=players B=structures R+G=effects, black=untagged.");
@@ -1437,7 +1437,7 @@ namespace RumbleReShaded
                 if (rung == 11 && !restoreDiagLogged)
                 {
                     restoreDiagLogged = true;
-                    MelonLogger.Msg("[diag] Mask sandwich rung 11: restore deliberately SKIPPED. " +
+                    Logger.Debug("[diag] Mask sandwich rung 11: restore deliberately SKIPPED. " +
                         "The category draws should be VISIBLE — map black, players grey, " +
                         "structures white, effects magenta. If the view is unchanged, the " +
                         "renderers are not tagged: press 'Tag renderer categories'.");
@@ -1445,7 +1445,7 @@ namespace RumbleReShaded
                 else if (rung == 13 && !restoreDiagLogged)
                 {
                     restoreDiagLogged = true;
-                    MelonLogger.Msg("[diag] Mask sandwich rung 13: restore deliberately SKIPPED — " +
+                    Logger.Debug("[diag] Mask sandwich rung 13: restore deliberately SKIPPED — " +
                         "YOU ARE LOOKING AT THE MASK ITSELF. Expect a BLACK world with flat RED " +
                         "map, GREEN players and BLUE structures, and nothing else. Any real " +
                         "scene detail still visible means the blank blit did not land; any " +
@@ -1480,7 +1480,7 @@ namespace RumbleReShaded
                     if (!skipDiagLogged)
                     {
                         skipDiagLogged = true;
-                        MelonLogger.Warning($"[diag] Mask sandwich rung {rung} SKIPPED the restore: " +
+                        Logger.Warning($"[diag] Mask sandwich rung {rung} SKIPPED the restore: " +
                             $"ownedHandle={(ownedHandle == null ? "null" : "ok")} " +
                             $"savedFrame={savedFrame} Time.frameCount={Time.frameCount}.");
                     }
@@ -1513,7 +1513,7 @@ namespace RumbleReShaded
                     if (!skipDiagLogged)
                     {
                         skipDiagLogged = true;
-                        MelonLogger.Warning("[diag] Mask sandwich rung 6: the stashed handle is invalid; " +
+                        Logger.Warning("[diag] Mask sandwich rung 6: the stashed handle is invalid; " +
                             "a TextureHandle does not survive between recordings even when imported.");
                     }
                     return;
@@ -1527,7 +1527,7 @@ namespace RumbleReShaded
                 if (!restoreDiagLogged)
                 {
                     restoreDiagLogged = true;
-                    MelonLogger.Msg($"[diag] Mask sandwich rung {rung} recorded RESTORE from the owned target " +
+                    Logger.Debug($"[diag] Mask sandwich rung {rung} recorded RESTORE from the owned target " +
                         $"({(rung == 6 ? "stashed handle" : "re-imported")}). " +
                         $"RenderGraph debug flags: {DebugFlagState}. " +
                         $"activeColor AT RESTORE: {DescribeActive(renderGraph, activeColor)}. " +
@@ -1547,7 +1547,7 @@ namespace RumbleReShaded
                 if (!skipDiagLogged)
                 {
                     skipDiagLogged = true;
-                    MelonLogger.Warning($"[diag] Mask sandwich rung 3 SKIPPED the restore: " +
+                    Logger.Warning($"[diag] Mask sandwich rung 3 SKIPPED the restore: " +
                         $"savedFrame={savedFrame} Time.frameCount={Time.frameCount} " +
                         $"savedValid={saved.IsValid()}. The save and restore passes are not " +
                         "recording in the same frame — that, not the blit, is the bug.");
@@ -1573,7 +1573,7 @@ namespace RumbleReShaded
             if (!restoreDiagLogged)
             {
                 restoreDiagLogged = true;
-                MelonLogger.Msg($"[diag] Mask sandwich rung {Rung} recorded RESTORE ('{passName}').");
+                Logger.Debug($"[diag] Mask sandwich rung {Rung} recorded RESTORE ('{passName}').");
             }
         }
     }

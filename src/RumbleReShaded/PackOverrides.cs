@@ -33,7 +33,7 @@ namespace RumbleReShaded
         {
             var created = new PackOverride(modId, pack.Id);
             lock (gate) live.Add(created);
-            MelonLogger.Msg($"RumbleReShaded: '{modId}' is overriding pack '{pack.Name}' (temporary - the player's settings are untouched).");
+            Logger.Info($"'{modId}' is overriding pack '{pack.Name}' (temporary - the player's settings are untouched).");
             return created;
         }
 

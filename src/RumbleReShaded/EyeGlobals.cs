@@ -46,7 +46,7 @@ namespace RumbleReShaded
                 logged = true;
                 // For reports of things sitting at the wrong depth: a headset's eyes are about 0.06 m apart.
                 float apart = Vector3.Distance(leftToWorld.GetColumn(3), rightToWorld.GetColumn(3));
-                MelonLogger.Msg($"[diag] Eye globals on '{cam.name}' (stereo={cam.stereoEnabled}): eyes {apart:0.000} m apart.");
+                Logger.Debug($"[diag] Eye globals on '{cam.name}' (stereo={cam.stereoEnabled}): eyes {apart:0.000} m apart.");
             }
         }
     }

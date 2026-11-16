@@ -63,11 +63,11 @@ namespace RumbleReShaded
             try
             {
                 server = new LiveLinkServer();
-                MelonLogger.Msg($"RumbleReShaded: live link listening on 127.0.0.1:{server.Port}.");
+                Logger.Info($"live link listening on 127.0.0.1:{server.Port}.");
             }
             catch (SocketException e)
             {
-                EventBuffer.WarnOnce("livelink:port", $"RumbleReShaded: live link could not listen on its port: {e.Message}");
+                EventBuffer.WarnOnce("livelink:port", $"live link could not listen on its port: {e.Message}");
             }
         }
 
@@ -91,7 +91,7 @@ namespace RumbleReShaded
             }
             catch (Exception e) when (e is JsonException or InvalidOperationException or KeyNotFoundException or FormatException)
             {
-                EventBuffer.WarnOnce("livelink:message", $"RumbleReShaded: live link ignored a message it could not read: {e.Message}");
+                EventBuffer.WarnOnce("livelink:message", $"live link ignored a message it could not read: {e.Message}");
             }
         }
 

@@ -79,7 +79,7 @@ namespace RumbleReShaded
                 if (!RumbleReShadedMod.passDiagLogged)
                 {
                     RumbleReShadedMod.passDiagLogged = true;
-                    MelonLogger.Msg("[diag] RRSRenderPass.RecordRenderGraph ran (DebugSolidFill): copied black over activeColorTexture.");
+                    Logger.Debug("[diag] RRSRenderPass.RecordRenderGraph ran (DebugSolidFill): copied black over activeColorTexture.");
                 }
                 return;
             }
@@ -117,7 +117,7 @@ namespace RumbleReShaded
             if (!RumbleReShadedMod.passDiagLogged)
             {
                 RumbleReShadedMod.passDiagLogged = true;
-                MelonLogger.Msg($"[diag] RRSRenderPass: activeColor {desc.width}x{desc.height} dim={desc.dimension} " +
+                Logger.Debug($"[diag] RRSRenderPass: activeColor {desc.width}x{desc.height} dim={desc.dimension} " +
                     $"slices={desc.slices} srcMSAA={renderGraph.GetTextureDesc(ref activeColor).msaaSamples}.");
             }
 
@@ -198,6 +198,7 @@ namespace RumbleReShaded
     public class RumbleReShadedMod : MelonMod
     {
         private static MelonPreferences_Entry<bool> masterEnabled;
+        private static MelonPreferences_Entry<bool> debugLogging;
 
         private static readonly List<ShaderPack> packs = new List<ShaderPack>();
         public static IReadOnlyList<ShaderPack> Packs => packs;
@@ -254,17 +255,17 @@ namespace RumbleReShaded
             renderFailureCount++;
 
             bool willRetry = renderFailureCount < MaxRenderAttempts;
-            MelonLogger.Error($"RumbleReShaded has switched its render pass off ({renderFailureCount}/{MaxRenderAttempts}) — " + what);
-            if (e != null) MelonLogger.Error(e.ToString());
+            Logger.Error($"Switched the render pass off ({renderFailureCount}/{MaxRenderAttempts}) — " + what);
+            if (e != null) Logger.Error(e.ToString());
 
             if (willRetry)
             {
-                MelonLogger.Warning("The game keeps running with no shader effects, and the pass will retry by " +
+                Logger.Warning("The game keeps running with no shader effects, and the pass will retry by " +
                     "itself on the next scene load. Nothing to do.");
             }
             else
             {
-                MelonLogger.Warning($"That was attempt {MaxRenderAttempts} of {MaxRenderAttempts}, so the pass now " +
+                Logger.Warning($"That was attempt {MaxRenderAttempts} of {MaxRenderAttempts}, so the pass now " +
                     "stays off until you restart the game. It keeps running with no shader effects. To stop it " +
                     "trying at all, set Enabled = false under [RumbleReShaded] in UserData/MelonPreferences.cfg. " +
                     "Please report this with your MelonLoader/Latest.log.");
@@ -276,7 +277,14 @@ namespace RumbleReShaded
         // a transient fault is most likely to be gone. Deliberately NOT a per-frame or timer-based
         // retry — that would re-enter the failing path hundreds of times a second and turn one
         // logged fault into a stutter.
-        public override void OnUpdate() => LiveLink.Update();
+        public override void OnUpdate()
+        {
+            // Read every frame rather than through a settings callback, the same way the pack
+            // order sliders are: a bool compare costs nothing, and it cannot miss a change that
+            // arrives by another route (a config reload, another mod writing the entry).
+            Logger.Level = debugLogging != null && debugLogging.Value ? LogLevel.Debug : LogLevel.Info;
+            LiveLink.Update();
+        }
 
         public override void OnApplicationQuit() => LiveLink.Stop();
 
@@ -289,7 +297,7 @@ namespace RumbleReShaded
             // is the whole diagnosis — if the numbers differ between attempts, the fault is a
             // changing camera target rather than anything in the pack path.
             passDiagLogged = false;
-            MelonLogger.Msg($"RumbleReShaded: retrying the render pass after loading '{sceneName}' " +
+            Logger.Info($"retrying the render pass after loading '{sceneName}' " +
                 $"(attempt {renderFailureCount + 1} of {MaxRenderAttempts}).");
         }
 
@@ -325,9 +333,14 @@ namespace RumbleReShaded
 
         public override void OnInitializeMelon()
         {
+            // First thing, before anything here can log: this is what puts [RumbleReShaded]
+            // in front of every line. Until it is set, Logger falls back to the static
+            // MelonLogger, which prefixes nothing.
+            Logger.Melon = LoggerInstance;
+
             // Register the injected Il2Cpp type before it is ever instantiated/used.
             try { ClassInjector.RegisterTypeInIl2Cpp<RRSRenderPass>(); }
-            catch (Exception e) { MelonLogger.Warning("RRSRenderPass already registered or registration failed: " + e.Message); }
+            catch (Exception e) { Logger.Warning("RRSRenderPass already registered or registration failed: " + e.Message); }
 
             // Stage 3 mask pass + its RenderGraph pass data. BOTH must be injected: RenderGraph
             // allocates the pass data on the Il2Cpp side, so an unregistered type would fail at
@@ -337,7 +350,7 @@ namespace RumbleReShaded
                 ClassInjector.RegisterTypeInIl2Cpp<RRSMaskPass>();
                 ClassInjector.RegisterTypeInIl2Cpp<RRSMaskPass.MaskPassData>();
             }
-            catch (Exception e) { MelonLogger.Warning("RRSMaskPass registration failed: " + e.Message); }
+            catch (Exception e) { Logger.Warning("RRSMaskPass registration failed: " + e.Message); }
 
             // Mask sandwich step 1 (see MaskSandwich.cs). Two passes, not one, because they sit
             // either side of CategoryRecolor's RenderObjectsPasses and so need different
@@ -350,7 +363,7 @@ namespace RumbleReShaded
                 // Step 3's third slice, added 2026-08-27.
                 ClassInjector.RegisterTypeInIl2Cpp<RRSSandwichMaskPass>();
             }
-            catch (Exception e) { MelonLogger.Warning("Mask sandwich pass registration failed: " + e.Message); }
+            catch (Exception e) { Logger.Warning("Mask sandwich pass registration failed: " + e.Message); }
 
             // Open the API here, NOT after the packs are scanned. Consumer mods register
             // their own packs from their OnInitializeMelon, which MelonLoader may run
@@ -358,7 +371,7 @@ namespace RumbleReShaded
             // whole of that phase. Scanning and menu-building move to
             // OnLateInitializeMelon, by which point every consumer has had its turn.
             ApiReady = true;
-            MelonLogger.Msg($"RumbleReShaded initialising. Trigger API v{Api.RRS.ApiVersion} ready " +
+            Logger.Info($"Initialising. Trigger API v{Api.RRS.ApiVersion} ready " +
                 $"({EventBuffer.MaxEvents} event slots); shader packs are collected after all mods have loaded.");
         }
 
@@ -372,6 +385,13 @@ namespace RumbleReShaded
 
             MelonPreferences_Category mainCat = MelonPreferences.CreateCategory("RumbleReShaded", "RumbleReShaded");
             masterEnabled = mainCat.CreateEntry("Enabled", true, "Enabled", "Master switch for all shader packs.");
+            // The diagnostic lines ([diag], [probe], [event]) are what a bug report is read
+            // from, but they are noise in a working game — a structure hit logged twice a
+            // second on its own. Off by default; nothing is deleted, only quiet.
+            debugLogging = mainCat.CreateEntry("DebugLogging", false, "Debug logging",
+                "Write this mod's diagnostic lines to the log. Off keeps the log quiet — turn it " +
+                "on before reporting a problem.");
+            Logger.Level = debugLogging.Value ? LogLevel.Debug : LogLevel.Info;
             LiveLink.BuildSettings(mainCat);
             // A real button: re-read every pack bundle from disk (handy while authoring).
             // Mod-supplied packs reload too — from their retained bytes rather than from
@@ -383,7 +403,7 @@ namespace RumbleReShaded
                 (Action)(() =>
                 {
                     foreach (ShaderPack pack in packs) pack.Unload();
-                    MelonLogger.Msg("Shader packs will reload.");
+                    Logger.Info("Shader packs will reload.");
                 }));
             // ── MENU PARKED 2026-08-06 (Peter) — entries removed, CODE UNTOUCHED ─────────────
             //
@@ -492,14 +512,14 @@ namespace RumbleReShaded
                     (Action)(() =>
                     {
                         target.ResetParameters();
-                        MelonLogger.Msg($"Shader pack '{target.Name}': parameters reset to defaults.");
+                        Logger.Info($"Shader pack '{target.Name}': parameters reset to defaults.");
                     }));
 
                 categories.Add(cat);
             }
 
             UI.RegisterMelon(this, categories.ToArray());
-            MelonLogger.Msg("RumbleReShaded settings registered with UIFramework.");
+            Logger.Debug("Settings registered with UIFramework.");
         }
 
         // Collect every pack from both sources. Disk first, so a user's own folder always
@@ -515,7 +535,7 @@ namespace RumbleReShaded
                 ShaderPack pack = ShaderPack.FromFolder(dir);
                 if (pack == null) continue;
                 if (!TryAdd(pack, dir)) continue;
-                MelonLogger.Msg($"Found shader pack '{pack.Name}'{(pack.Author.Length > 0 ? " by " + pack.Author : "")} {pack.Version}");
+                Logger.Debug($"Found shader pack '{pack.Name}'{(pack.Author.Length > 0 ? " by " + pack.Author : "")} {pack.Version}");
             }
 
             // Packs other mods handed us during OnInitializeMelon (RRS.RegisterPack).
@@ -527,7 +547,7 @@ namespace RumbleReShaded
 
             SortPacks();
 
-            MelonLogger.Msg($"{packs.Count} shader pack(s): {packs.Count - embedded} from UserData, {embedded} supplied by other mods.");
+            Logger.Info($"{packs.Count} shader pack(s): {packs.Count - embedded} from UserData, {embedded} supplied by other mods.");
         }
 
         // Lower queue applies first; a scene-transforming pack wants to be LAST if it
@@ -578,7 +598,7 @@ namespace RumbleReShaded
         {
             if (packs.Exists(p => p.Id == pack.Id))
             {
-                MelonLogger.Warning($"Duplicate shader pack '{pack.Id}' — skipping {source}. Pack names must be unique.");
+                Logger.Warning($"Duplicate shader pack '{pack.Id}' — skipping {source}. Pack names must be unique.");
                 return false;
             }
             packs.Add(pack);
@@ -684,7 +704,7 @@ namespace RumbleReShaded
         private static void LogFlatscreenCamera(Camera cam)
         {
             if (cam.stereoEnabled || UnityEngine.XR.XRSettings.isDeviceActive || !flatscreenCamerasLogged.Add(cam.name)) return;
-            MelonLogger.Msg($"[diag] Flatscreen camera '{cam.name}': tag={cam.tag}, type={cam.cameraType}, depth={cam.depth}, " +
+            Logger.Debug($"[diag] Flatscreen camera '{cam.name}': tag={cam.tag}, type={cam.cameraType}, depth={cam.depth}, " +
                 $"targetTexture={cam.targetTexture != null}, isTheView={cam.targetTexture == null && IsTheView(cam)}.");
         }
 
@@ -768,7 +788,7 @@ namespace RumbleReShaded
             if (!enqueueDiagLogged)
             {
                 enqueueDiagLogged = true;
-                MelonLogger.Msg($"[diag] EnqueuePass on '{cam.name}' (stereo={cam.stereoEnabled}, XR={UnityEngine.XR.XRSettings.enabled}). " +
+                Logger.Debug($"[diag] EnqueuePass on '{cam.name}' (stereo={cam.stereoEnabled}, XR={UnityEngine.XR.XRSettings.enabled}). " +
                     "Pass will run inside URP's RenderGraph.");
             }
         }

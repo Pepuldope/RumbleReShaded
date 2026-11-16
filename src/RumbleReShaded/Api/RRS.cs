@@ -112,7 +112,7 @@ namespace RumbleReShaded.Api
             var found = RumbleReShadedMod.FindPack(pack);
             if (found == null)
             {
-                EventBuffer.WarnOnce("preload:" + pack, $"RumbleReShaded: Preload(\"{pack}\") - no such pack is installed.");
+                EventBuffer.WarnOnce("preload:" + pack, $"Preload(\"{pack}\") - no such pack is installed.");
                 return false;
             }
             return found.EnsureLoaded();
@@ -138,7 +138,7 @@ namespace RumbleReShaded.Api
             var found = RumbleReShadedMod.FindPack(pack);
             if (found == null)
             {
-                EventBuffer.WarnOnce("override:" + pack, $"RumbleReShaded: '{modId}' tried to override \"{pack}\" - no such pack is installed.");
+                EventBuffer.WarnOnce("override:" + pack, $"'{modId}' tried to override \"{pack}\" - no such pack is installed.");
                 return null;
             }
             return PackOverrides.Create(modId, found);

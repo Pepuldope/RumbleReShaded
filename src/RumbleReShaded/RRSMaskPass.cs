@@ -159,14 +159,14 @@ namespace RumbleReShaded
                 if (!loggedOnce)
                 {
                     loggedOnce = true;
-                    MelonLogger.Msg($"[diag] RRSMaskPass recorded (rung {DebugMode}, {maskDesc.width}x{maskDesc.height} " +
+                    Logger.Debug($"[diag] RRSMaskPass recorded (rung {DebugMode}, {maskDesc.width}x{maskDesc.height} " +
                         $"slices={maskDesc.slices}). Reaching this line means recording did not crash.");
                 }
             }
             catch (Exception e)
             {
                 failed = true;
-                MelonLogger.Error($"RRSMaskPass failed and is now DISABLED for this session: " +
+                Logger.Error($"RRSMaskPass failed and is now DISABLED for this session: " +
                     $"{e.GetType().Name}: {e.Message}\n{e.StackTrace}");
             }
         }
@@ -258,7 +258,7 @@ namespace RumbleReShaded
                     managedRenderFunc = Execute;
                     convertedRenderFunc = DelegateSupport
                         .ConvertDelegate<BaseRenderFunc<RGUtils.CopyPassData, RasterGraphContext>>(managedRenderFunc);
-                    MelonLogger.Msg("[diag] Mask render callback converted to an Il2Cpp delegate (once).");
+                    Logger.Debug("[diag] Mask render callback converted to an Il2Cpp delegate (once).");
                 }
                 return convertedRenderFunc;
             }
@@ -276,7 +276,7 @@ namespace RumbleReShaded
                 if (!executedOnce)
                 {
                     executedOnce = true;
-                    MelonLogger.Msg("[diag] Mask render callback EXECUTED — Il2Cpp delegate marshalling works.");
+                    Logger.Debug("[diag] Mask render callback EXECUTED — Il2Cpp delegate marshalling works.");
                 }
 
                 // Rung 3 paints the attachment GREEN. Deliberately not red: rungs 1-2 were shown
@@ -298,7 +298,7 @@ namespace RumbleReShaded
                 // Disables the pass rather than throwing back into the render graph, and logs
                 // once — this runs per frame per eye, so an unguarded log here is its own hang.
                 failed = true;
-                MelonLogger.Error($"RRSMaskPass render callback threw: {e.GetType().Name}: {e.Message}");
+                Logger.Error($"RRSMaskPass render callback threw: {e.GetType().Name}: {e.Message}");
             }
         }
 
@@ -313,7 +313,7 @@ namespace RumbleReShaded
                 Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
                 if (shader == null)
                 {
-                    MelonLogger.Warning("RRSMaskPass: 'Universal Render Pipeline/Unlit' not found at runtime, " +
+                    Logger.Warning("RRSMaskPass: 'Universal Render Pipeline/Unlit' not found at runtime, " +
                         "despite the scene survey seeing 57 renderers using it. Mask pass cannot draw.");
                     return null;
                 }
