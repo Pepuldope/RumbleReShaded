@@ -717,6 +717,7 @@ namespace RumbleReShaded
             // enqueued — globals set while the render graph is being recorded are
             // order-dependent, so setting them up front is the predictable option.
             EventBuffer.PushGlobals();
+            EyeGlobals.Push(cam);
 
             UniversalAdditionalCameraData maskData = cam.GetComponent<UniversalAdditionalCameraData>();
             ScriptableRenderer maskRenderer = maskData != null ? maskData.scriptableRenderer : null;
